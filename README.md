@@ -1,5 +1,5 @@
 
-# Weekly Meal Planner 🌱
+# Weekly Meal Planner 
 
 ## 1. Project Overview
 The Weekly Meal Planner is a proposed AI-assisted tool designed to help households create practical weekly menus with a lower estimated food-related carbon footprint.
