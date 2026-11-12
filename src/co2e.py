@@ -42,6 +42,9 @@ def get_matcher(name: str = "labels"):
         return LabelMatcher()
     if name == "rapidfuzz":
         return RapidFuzzMatcher()
+    if name == "ai":
+        from ai_matching import EmbeddingMatcher
+        return EmbeddingMatcher()
     raise ValueError(f"Unknown matcher: {name}")
 
 
