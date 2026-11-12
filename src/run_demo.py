@@ -4,6 +4,7 @@ Usage:
     python src/run_demo.py
     python src/run_demo.py --diet vegetarian --goal variety --people 2
     python src/run_demo.py --matcher rapidfuzz      # see how wrong matches change the numbers
+    python src/run_demo.py --matcher ai             # AI matcher (needs requirements-ai.txt)
 """
 import argparse
 
@@ -27,7 +28,7 @@ def main():
     ap.add_argument("--diet", default="omnivore", choices=list(ALLOWED_TAGS))
     ap.add_argument("--goal", default="variety", choices=["low_carbon", "variety"])
     ap.add_argument("--people", type=int, default=1)
-    ap.add_argument("--matcher", default="labels", choices=["labels", "rapidfuzz"])
+    ap.add_argument("--matcher", default="labels", choices=["labels", "rapidfuzz", "ai"])
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
