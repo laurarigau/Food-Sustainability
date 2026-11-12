@@ -1,0 +1,101 @@
+label_id,ingredient_text,language,canonical_ingredient,split,agribalyse_code,agribalyse_name,co2e_kg_per_kg,labelled_by,notes
+L001,avocado,en,avocado,tune,13004,"Avocado, pulp, raw",1.55,Silvia,
+L002,beef,en,beef,test,6254,"Beef, minced steak, 15% fat, raw",35.7,Silvia,"Minced beef chosen (bolognese, burger). Other raw cuts ~28.9 vs 35.7 kg CO2e/kg."
+L003,bell pepper,en,bell pepper,tune,20041,"Sweet pepper, green, yellow or red, raw",0.715,Silvia,Generic sweet pepper (any colour); same CO2e as red/green raw.
+L004,black bean,en,black bean,test,20511,"Haricot bean, canned, drained",0.999,Silvia,"PROXY: no black bean in Agribalyse. Using haricot bean, canned (same species). Declare in log."
+L005,broccoli,en,broccoli,tune,20057,"Broccoli, raw",0.951,Silvia,
+L006,burger bun,en,burger bun,test,7259,"Rolls for hamburger/hotdog (buns), prepacked",1.81,Silvia,
+L007,butter,en,butter,test,16400,"Butter, 82% fat, unsalted",7.94,Silvia,
+L008,cabbage,en,cabbage,tune,20116,"White cabbage, raw",0.762,Silvia,White cabbage chosen (noodles recipe).
+L009,carrot,en,carrot,tune,20009,"Carrot, raw",0.396,Silvia,
+L010,celery,en,celery,test,20023,"Celery stalk, raw",0.715,Silvia,
+L011,cheddar,en,cheddar,test,12726,"Cheddar cheese, from cow's milk",6.65,Silvia,
+L012,chicken,en,chicken,tune,36017,"Chicken, breast, without skin, raw",5.58,Silvia,"Breast without skin, raw."
+L013,chickpea,en,chickpea,test,20532,"Chick pea, canned, drained",2.2,Silvia,"Canned, drained: 240 g = one drained can. Alternative cooked from dry (20507) is ~3.6x lower. Team decision."
+L014,chorizo,en,chorizo,test,30315,"Spicy pork sausage with red pepper, no precision",7.42,Silvia,"LCI name is ""Spicy pork sausage with red pepper"" (French name: Chorizo). Hard case for string matching."
+L015,coconut milk,en,coconut milk,test,18041,Coconut milk or coconut cream,0.682,Silvia,
+L016,corn tortilla,en,corn tortilla,tune,7813,"Corn tortilla wrap, to be filled",1.03,Silvia,
+L017,egg,en,egg,test,22000,"Egg, raw",1.88,Silvia,
+L018,garlic,en,garlic,test,11000,"Garlic, fresh",0.383,Silvia,
+L019,green pea,en,green pea,tune,20084,"Garden peas, frozen, raw",0.81,Silvia,Frozen peas chosen (typical for paella). Fresh raw = 20072.
+L020,hake,en,hake,tune,26044,"European hake, raw",7.59,Silvia,
+L021,kidney bean,en,kidney bean,tune,20524,"Red kidney bean, canned, drained",1.45,Silvia,"Canned, drained: 240 g = one drained can."
+L022,lamb,en,lamb,test,21504,"Lamb, shoulder, raw",33,Silvia,"Shoulder, raw (stew cut)."
+L023,lemon,en,lemon,test,13009,"Lemon, pulp, raw",0.764,Silvia,
+L024,lentil,en,lentil,test,20505,"Lentil, cooked",0.466,Silvia,Cooked: 200 g for 2 matches cooked weight.
+L025,lettuce,en,lettuce,test,20031,"Lettuce, raw",0.868,Silvia,
+L026,mushroom,en,mushroom,test,,NO MATCH,,Silvia,"NO MATCH: button mushroom is not in Agribalyse synthese. Only morel (20105, 6.17) exists - bad proxy. Correct answer for the matcher = ""uncertain"". Team decision."
+L027,noodles,en,noodles,tune,9086,"Asian noodles, plain, cooked, unsalted",1.49,Silvia,Code 9086 is for plain cooked noodles. The recipe uses 180 g dry. Apply this factor to the equivalent cooked weight. Code 9863 is for flavoured dehydrated Asian noodles.
+L028,olive oil,en,olive oil,test,17270,"Olive oil, extra virgin",1.63,Silvia,
+L029,onion,en,onion,tune,20034,"Onion, raw",0.421,Laura,
+L030,parmesan,en,parmesan,tune,12120,"Parmesan cheese, from cow's milk",6.27,Laura,
+L031,pasta,en,pasta,tune,9810,"Dried pasta, raw",1.98,Laura,"Dried pasta, raw: recipe weights are dry weights."
+L032,peanut butter,en,peanut butter,tune,15202,Peanut butter or peanut paste,4.06,Laura,
+L033,pork,en,pork,tune,28302,"Pork, loin, raw",6.58,Laura,"Loin, raw (pork loin recipe)."
+L034,potato,en,potato,test,4008,"Potato, peeled, raw",0.788,Laura,
+L035,rice,en,rice,tune,9100,"Rice, raw",2.01,Laura,Raw: 160 g for 2 is dry weight.
+L036,salmon,en,salmon,tune,26036,"Salmon, raw, farmed",5.55,Laura,"Farmed, raw."
+L037,shrimp,en,shrimp,tune,10021,"Shrimp or prawn, raw",20.4,Laura,
+L038,soy sauce,en,soy sauce,test,11104,"Soy sauce, prepacked",0.995,Laura,
+L039,spinach,en,spinach,tune,20059,"Spinach, raw",0.423,Laura,
+L040,split pea,en,split pea,tune,20515,"Split pea, dried",0.75,Laura,Dried: soup uses dry split peas.
+L041,sunflower oil,en,sunflower oil,tune,17440,Sunflower oil,2.36,Laura,
+L042,tofu,en,tofu,test,20904,"Tofu, plain",1,Laura,
+L043,tomato,en,tomato,test,20047_1,"Tomato, raw",0.75,Laura,"Generic raw tomato. In season (20047_2, 0.63) vs off season (20047_3, 2.11) exist: possible future feature."
+L044,tuna,en,tuna,tune,26039,"Tuna, plain, canned, drained",5.88,Laura,"Canned, plain, drained (tuna pasta)."
+L045,turkey,en,turkey,tune,36304,"Turkey, escalope, raw",5.58,Laura,"Escalope, raw."
+L046,wheat tortilla,en,wheat tortilla,tune,7815_1,"Wheat tortilla wrap, to be filled",1.24,Laura,
+L047,white bean,en,white bean,test,20511,"Haricot bean, canned, drained",0.999,Laura,"Haricot bean, canned, drained: 240 g = one drained can."
+L048,zucchini,en,zucchini,test,20020,"Courgette or zucchini, pulp and peel, raw",0.498,Laura,
+L049,tomate,es,tomato,tune,20047_1,"Tomato, raw",0.75,Laura,"Same code as ""tomato""."
+L050,tomàquet,ca,tomato,test,20047_1,"Tomato, raw",0.75,Laura,"Same code as ""tomato""."
+L051,cebolla,es,onion,tune,20034,"Onion, raw",0.421,Laura,"Same code as ""onion""."
+L052,ceba,ca,onion,test,20034,"Onion, raw",0.421,Laura,"Same code as ""onion""."
+L053,zanahoria,es,carrot,test,20009,"Carrot, raw",0.396,Laura,"Same code as ""carrot""."
+L054,pastanaga,ca,carrot,test,20009,"Carrot, raw",0.396,Laura,"Same code as ""carrot""."
+L055,patata,es,potato,tune,4008,"Potato, peeled, raw",0.788,Carla,"Same code as ""potato""."
+L056,patates,ca,potato,test,4008,"Potato, peeled, raw",0.788,Carla,"Same code as ""potato""."
+L057,ajo,es,garlic,tune,11000,"Garlic, fresh",0.383,Carla,"Same code as ""garlic""."
+L058,all,ca,garlic,test,11000,"Garlic, fresh",0.383,Carla,"Same code as ""garlic""."
+L059,aceite de oliva,es,olive oil,test,17270,"Olive oil, extra virgin",1.63,Carla,"Same code as ""olive oil""."
+L060,oli d'oliva,ca,olive oil,tune,17270,"Olive oil, extra virgin",1.63,Carla,"Same code as ""olive oil""."
+L061,arroz,es,rice,test,9100,"Rice, raw",2.01,Carla,"Same code as ""rice""."
+L062,arròs,ca,rice,tune,9100,"Rice, raw",2.01,Carla,"Same code as ""rice""."
+L063,pollo,es,chicken,test,36017,"Chicken, breast, without skin, raw",5.58,Carla,"Same code as ""chicken""."
+L064,pollastre,ca,chicken,test,36017,"Chicken, breast, without skin, raw",5.58,Carla,"Same code as ""chicken""."
+L065,ternera,es,beef,test,6254,"Beef, minced steak, 15% fat, raw",35.7,Carla,"Same code as ""beef""."
+L066,vedella,ca,beef,test,6254,"Beef, minced steak, 15% fat, raw",35.7,Carla,"Same code as ""beef""."
+L067,lentejas,es,lentil,tune,20505,"Lentil, cooked",0.466,Carla,"Same code as ""lentil""."
+L068,llenties,ca,lentil,tune,20505,"Lentil, cooked",0.466,Carla,"Same code as ""lentil""."
+L069,garbanzos,es,chickpea,tune,20532,"Chick pea, canned, drained",2.2,Carla,"Same code as ""chickpea""."
+L070,cigrons,ca,chickpea,tune,20532,"Chick pea, canned, drained",2.2,Carla,"Same code as ""chickpea""."
+L071,pimiento rojo,es,bell pepper,tune,20041,"Sweet pepper, green, yellow or red, raw",0.715,Carla,"Same code as ""bell pepper""."
+L072,pebrot,ca,bell pepper,tune,20041,"Sweet pepper, green, yellow or red, raw",0.715,Carla,"Same code as ""bell pepper""."
+L073,huevo,es,egg,tune,22000,"Egg, raw",1.88,Carla,"Same code as ""egg""."
+L074,ou,ca,egg,tune,22000,"Egg, raw",1.88,Carla,"Same code as ""egg""."
+L075,queso cheddar,es,cheddar,tune,12726,"Cheddar cheese, from cow's milk",6.65,Carla,"Same code as ""cheddar""."
+L076,formatge parmesà,ca,parmesan,test,12120,"Parmesan cheese, from cow's milk",6.27,Carla,"Same code as ""parmesan""."
+L077,champiñones,es,mushroom,tune,,NO MATCH,,Carla,"Same code as ""mushroom"". NO MATCH: button mushroom is not in Agribalyse synthese. Only morel (20105, 6.17) exists - bad proxy. Correct answer for the matcher = ""uncertain"". Team decision."
+L078,xampinyons,ca,mushroom,test,,NO MATCH,,Carla,"Same code as ""mushroom"". NO MATCH: button mushroom is not in Agribalyse synthese. Only morel (20105, 6.17) exists - bad proxy. Correct answer for the matcher = ""uncertain"". Team decision."
+L079,espinacas,es,spinach,tune,20059,"Spinach, raw",0.423,Carla,"Same code as ""spinach""."
+L080,espinacs,ca,spinach,tune,20059,"Spinach, raw",0.423,Carla,"Same code as ""spinach""."
+L081,salmón,es,salmon,test,26036,"Salmon, raw, farmed",5.55,Carla,"Same code as ""salmon""."
+L082,salmó,ca,salmon,tune,26036,"Salmon, raw, farmed",5.55,Carla,"Same code as ""salmon""."
+L083,atún,es,tuna,test,26039,"Tuna, plain, canned, drained",5.88,Carla,"Same code as ""tuna""."
+L084,tonyina,ca,tuna,tune,26039,"Tuna, plain, canned, drained",5.88,Carla,"Same code as ""tuna""."
+L085,merluza,es,hake,test,26044,"European hake, raw",7.59,Carla,"Same code as ""hake""."
+L086,lluç,ca,hake,tune,26044,"European hake, raw",7.59,Martina,"Same code as ""hake""."
+L087,gambas,es,shrimp,test,10021,"Shrimp or prawn, raw",20.4,Martina,"Same code as ""shrimp""."
+L088,gambes,ca,shrimp,tune,10021,"Shrimp or prawn, raw",20.4,Martina,"Same code as ""shrimp""."
+L089,cordero,es,lamb,test,21504,"Lamb, shoulder, raw",33,Martina,"Same code as ""lamb""."
+L090,xai,ca,lamb,test,21504,"Lamb, shoulder, raw",33,Martina,"Same code as ""lamb""."
+L091,cerdo,es,pork,test,28302,"Pork, loin, raw",6.58,Martina,"Same code as ""pork""."
+L092,porc,ca,pork,tune,28302,"Pork, loin, raw",6.58,Martina,"Same code as ""pork""."
+L093,pavo,es,turkey,test,36304,"Turkey, escalope, raw",5.58,Martina,"Same code as ""turkey""."
+L094,gall dindi,ca,turkey,test,36304,"Turkey, escalope, raw",5.58,Martina,"Same code as ""turkey""."
+L095,judías blancas,es,white bean,tune,20511,"Haricot bean, canned, drained",0.999,Martina,"Same code as ""white bean""."
+L096,mongetes,ca,white bean,test,20511,"Haricot bean, canned, drained",0.999,Martina,"Same code as ""white bean""."
+L097,calabacín,es,zucchini,tune,20020,"Courgette or zucchini, pulp and peel, raw",0.498,Martina,"Same code as ""zucchini""."
+L098,carbassó,ca,zucchini,test,20020,"Courgette or zucchini, pulp and peel, raw",0.498,Martina,"Same code as ""zucchini""."
+L099,brócoli,es,broccoli,test,20057,"Broccoli, raw",0.951,Martina,"Same code as ""broccoli""."
+L100,guisantes,es,green pea,test,20084,"Garden peas, frozen, raw",0.81,Martina,"Same code as ""green pea""."
