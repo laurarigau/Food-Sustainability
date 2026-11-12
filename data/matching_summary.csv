@@ -1,0 +1,5 @@
+matcher,model,threshold,tune_acc,test_correct,test_n
+rapidfuzz,WRatio,75.0,0.18,7.0,50
+ai,sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2,0.75,0.1,,50
+ai,sentence-transformers/paraphrase-multilingual-mpnet-base-v2,0.7,0.16,11.0,50
+ai,intfloat/multilingual-e5-small,0.0,0.14,,50

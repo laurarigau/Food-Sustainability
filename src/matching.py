@@ -29,9 +29,13 @@ def load_agribalyse(path: Path = AGRIBALYSE_FILE) -> pd.DataFrame:
         "Code AGB": "agribalyse_code",
         "LCI Name": "agribalyse_name",
         "Changement climatique": "co2e_per_kg",
+        "Nom du Produit en Français": "name_fr",
+        "Groupe d'aliment": "group",
+        "Sous-groupe d'aliment": "subgroup",
     })
     df["agribalyse_code"] = df["agribalyse_code"].astype(str).str.strip()
-    return df[["agribalyse_code", "agribalyse_name", "co2e_per_kg"]].reset_index(drop=True)
+    cols = ["agribalyse_code", "agribalyse_name", "co2e_per_kg", "name_fr", "group", "subgroup"]
+    return df[cols].reset_index(drop=True)
 
 
 class RapidFuzzMatcher:
