@@ -66,12 +66,14 @@ def evaluate(matcher, grid, labels: pd.DataFrame | None = None) -> dict:
             "test_correct": int(test.correct.sum()), "test_n": len(test)}
 
 
-def build_matcher(name: str, model: str | None = None):
+def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None):
     if name == "rapidfuzz":
         return RapidFuzzMatcher(threshold=0), np.arange(0, 101, 5)
     if name == "ai":
-        from ai_matching import DEFAULT_MODEL, EmbeddingMatcher
-        return EmbeddingMatcher(model_name=model or DEFAULT_MODEL, threshold=0.0), np.round(np.arange(0, 1.0001, 0.05), 2)
+        from ai_matching import DEFAULT_CANDIDATES, DEFAULT_MODEL, DEFAULT_PASSAGE, EmbeddingMatcher
+        m = EmbeddingMatcher(model_name=model or DEFAULT_MODEL, threshold=0.0,
+                             candidates=candidates or DEFAULT_CANDIDATES, passage=passage or DEFAULT_PASSAGE)
+        return m, np.round(np.arange(0, 1.0001, 0.05), 2)
     raise ValueError(name)
 
 
@@ -79,12 +81,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--matcher", default="rapidfuzz", choices=["rapidfuzz", "ai"])
     ap.add_argument("--model", default=None, help="sentence-transformers model name (AI matcher only)")
+    ap.add_argument("--candidates", default=None, choices=["all", "light", "strict"])
+    ap.add_argument("--passage", default=None, choices=["en", "en_fr"])
     ap.add_argument("--details", action="store_true")
     args = ap.parse_args()
 
-    matcher, grid = build_matcher(args.matcher, args.model)
+    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage)
     r = evaluate(matcher, grid)
-    label = args.matcher if args.matcher == "rapidfuzz" else f"ai ({matcher.model_name})"
+    label = args.matcher if args.matcher == "rapidfuzz" else f"ai ({matcher.model_name}, candidates={matcher.candidates}, passage={matcher.passage})"
     print(f"Matcher: {label}")
     print(f"Threshold chosen on TUNE: {r['threshold']}  (tune accuracy {r['tune_acc']:.0%})")
     print(f"\nTEST: {r['test_correct']}/{r['test_n']} correct ({r['test_correct'] / r['test_n']:.0%})")
