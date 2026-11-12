@@ -105,3 +105,12 @@ If reliable coverage is insufficient, the project will restrict the supported re
 ## 12. Team and Contributions
 Team members and responsibilities will be documented as tasks are assigned.
 Contributions will be tracked through the project board and repository history.
+## How to run
+
+```bash
+pip install -r requirements.txt
+python src/run_demo.py                                  # weekly plan + swap
+python src/run_demo.py --diet vegan --goal low_carbon   # diets: vegan, vegetarian, pescatarian, omnivore
+python src/evaluate_matching.py                         # matcher accuracy on the test set
+python tests/test_smoke.py                              # run before every merge
+```
