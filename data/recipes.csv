@@ -1,0 +1,26 @@
+recipe_id,recipe_name,servings,dietary_tag,main_protein
+R001,Tomato Pasta,2,vegetarian,none
+R002,Chicken Rice,2,omnivore,chicken
+R003,Lentil Salad,2,vegan,lentil
+R004,Vegetable Stir Fry,2,vegan,none
+R005,Beef Bolognese,2,omnivore,beef
+R006,Chickpea Curry,2,vegan,chickpea
+R007,Tofu Rice Bowl,2,vegan,tofu
+R008,Chili sin Carne,2,vegan,kidney bean
+R009,White Bean Stew,2,vegan,white bean
+R010,Split Pea Soup,2,vegan,pea
+R011,Peanut Noodles,2,vegan,peanut
+R012,Black Bean Tacos,2,vegan,black bean
+R013,Spanish Omelette,2,vegetarian,egg
+R014,Mushroom Risotto,2,vegetarian,cheese
+R015,Shakshuka,2,vegetarian,egg
+R016,Spinach and Cheese Quesadilla,2,vegetarian,cheese
+R017,Baked Salmon with Potatoes,2,pescatarian,salmon
+R018,Tuna Pasta,2,pescatarian,tuna
+R019,Hake with Vegetables,2,pescatarian,hake
+R020,Prawn Paella,2,pescatarian,shrimp
+R021,Lamb Stew,2,omnivore,lamb
+R022,Pork Loin with Potatoes,2,omnivore,pork
+R023,Turkey Wrap,2,omnivore,turkey
+R024,Beef Burger,2,omnivore,beef
+R025,Lentils with Chorizo,2,omnivore,pork sausage
