@@ -10,27 +10,27 @@
 
 | Component | Position on the hill | Depends on |
 |---|---|---|
-| Data (OFF + Agribalyse) | [TO COMPLETE, e.g. downhill] | — |
-| Recipes (20–30) | [TO COMPLETE] | Data |
-| Ingredient matching (AI) | [TO COMPLETE, e.g. uphill] | Data, labelled ingredients |
-| CO2e calculation | [TO COMPLETE] | Ingredient matching |
-| Weekly planner | [TO COMPLETE] | Recipes, CO2e |
-| Interface (Streamlit) | [TO COMPLETE] | Output format of the planner |
+| Data (OFF + Agribalyse) | Downhill (real, loaded and joined) | — |
+| Recipes (20–30) | Downhill (we know how; it’s just work) | Data |
+| Ingredient matching (AI) | Uphill (we don’t know if embeddings beat RapidFuzz) | Data, labelled ingredients |
+| CO2e calculation | Downhill (real) | Ingredient matching |
+| Weekly planner | Top of the hill (rules are clear, not coded yet) | Recipes, CO2e |
+| Interface (Streamlit) | Uphill (nobody has used Streamlit on HF Spaces) | Output format of the planner |
 
-- **Bottleneck (red dot):** [TO COMPLETE, likely ingredient matching: CO2e, planner and interface all wait for it]
+- **Bottleneck (red dot):** ingredient matching. The CO2e calculation, the planner and the interface all depend on its output.
 - **Mitigation** *(proposal)*: agree the output format of the matcher now (`ingredient → agribalyse_code, co2e_per_kg, confidence`), and keep RapidFuzz as a working stub so the rest of the pipeline is never blocked.
 - Photo of the wall: [ADD]
 
 #### Work 2: Press release
 
-- **Headline:** [TO COMPLETE]
-- **Problem:** [TO COMPLETE]
-- **Solution:** [TO COMPLETE]
-- **User quote:** [TO COMPLETE]
+- **Headline:** Households can now plan a week of meals that fits their diet and see its carbon footprint, meal by meal.
+- **Problem:** People want to eat more sustainably, but they don’t know which meals have a high or low footprint, and checking ingredient by ingredient takes too long.
+- **Solution:** Our planner takes your diet, builds a 7-day menu from 25 recipes and shows the estimated kg CO2e of each meal and the whole week. You can swap a meal and see the total change. Ingredients are matched to Agribalyse automatically, even in Spanish or Catalan.
+- **User quote:** “I swapped two beef dinners for lentils and saw my week drop by more than half. I didn’t have to look anything up.”
 - **FAQs:**
-  - Data: [TO COMPLETE]
-  - Model accuracy: [TO COMPLETE]
-  - What is still faked: [TO COMPLETE]
+  - Data: Open Food Facts and Agribalyse (kg CO2e per kg), with 25 hand-curated recipes and their quantities in grams.
+  - Model accuracy: On 50 hand-labelled ingredients, our matcher gets [X]/50 right, against [Y]/50 for simple string matching. When it is not sure, it shows “uncertain” instead of a number.
+  - What is still faked: The recipes are curated by hand, and the planner uses simple rules, not AI.
 - Photo of the A3: [ADD]
 - This press release is the first draft of our 2 December script.
 
@@ -40,7 +40,7 @@
 |---|---|---|---|---|
 | [TO COMPLETE] | | | | Must / Should / Could / Won't |
 
-- **Cut list:** [TO COMPLETE]
+- **Cut list:** recipe recommendation with embeddings, grocery list, price optimisation.
 - **Spike cards (time-boxed):** [TO COMPLETE, e.g. "Can embeddings beat RapidFuzz by 10 points? Time-box: until 24 Nov"]
 
 #### Work 4 and 5: Pre-mortem with red team
