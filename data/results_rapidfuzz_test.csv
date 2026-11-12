@@ -1,0 +1,51 @@
+label_id,ingredient_text,language,split,agribalyse_code,agribalyse_name,pred_code,pred_name,score,uncertain,correct
+L002,beef,en,test,6254,"Beef, minced steak, 15% fat, raw",25108,Beef samosas or samoosas,90.0,False,False
+L004,black bean,en,test,20511,"Haricot bean, canned, drained",11015,"Black pepper, powder",85.5,False,False
+L006,burger bun,en,test,7259,"Rolls for hamburger/hotdog (buns), prepacked",11196,"Burger sauce, prepacked",85.5,False,False
+L007,butter,en,test,16400,"Butter, 82% fat, unsalted",11140,"White butter sauce, prepacked",90.0,False,False
+L010,celery,en,test,20023,"Celery stalk, raw",11044,Celery salt,90.0,False,False
+L011,cheddar,en,test,12726,"Cheddar cheese, from cow's milk",12726,"Cheddar cheese, from cow's milk",90.0,False,True
+L013,chickpea,en,test,20532,"Chick pea, canned, drained",20532,"Chick pea, canned, drained",78.75,False,True
+L014,chorizo,en,test,30315,"Spicy pork sausage with red pepper, no precision",25462,"Pizza, chorizo or salami",90.0,False,False
+L015,coconut milk,en,test,18041,Coconut milk or coconut cream,18041,Coconut milk or coconut cream,90.0,False,True
+L017,egg,en,test,22000,"Egg, raw",25420,Egg roll or Nem,90.0,False,False
+L018,garlic,en,test,11000,"Garlic, fresh",11023,"Garlic, powder, dried",90.0,False,False
+L022,lamb,en,test,21504,"Lamb, shoulder, raw",20099,"Lamb's lettuce, raw",90.0,False,False
+L023,lemon,en,test,13009,"Lemon, pulp, raw",5004,Shandy (beer + lemonade),90.0,False,False
+L024,lentil,en,test,20505,"Lentil, cooked",25010,Salt-cured pork belly with lentils,90.0,False,False
+L025,lettuce,en,test,20031,"Lettuce, raw",20995,"Sea lettuce (Enteromorpha sp.), dried or dehydrated",90.0,False,False
+L026,mushroom,en,test,,NO MATCH,11192,"Cream sauce with mushrooms, prepacked",90.0,False,False
+L028,olive oil,en,test,17270,"Olive oil, extra virgin",11168,"Aioli sauce (garlic and olive oil mayonnaise), prepacked",90.0,False,False
+L034,potato,en,test,4008,"Potato, peeled, raw",20252,"Soup for baby, with vegetables and potatoes",90.0,False,False
+L038,soy sauce,en,test,11104,"Soy sauce, prepacked",11104,"Soy sauce, prepacked",90.0,False,True
+L042,tofu,en,test,20904,"Tofu, plain",20904,"Tofu, plain",90.0,False,True
+L043,tomato,en,test,20047_1,"Tomato, raw",37002,Tomato sauce for pizza base,90.0,False,False
+L047,white bean,en,test,20511,"Haricot bean, canned, drained",25099,"White bean stew, with duck or goose, canned",90.0,False,False
+L048,zucchini,en,test,20020,"Courgette or zucchini, pulp and peel, raw",20020,"Courgette or zucchini, pulp and peel, raw",90.0,False,True
+L050,tomàquet,ca,test,20047_1,"Tomato, raw",36027,"Chicken, nugget, breaded croquette",60.00000000000001,True,False
+L052,ceba,ca,test,20034,"Onion, raw",11214,"Soy ""cream"" preparation",67.5,True,False
+L053,zanahoria,es,test,20009,"Carrot, raw",1017,Sangria,62.5,True,False
+L054,pastanaga,ca,test,20009,"Carrot, raw",25122,Pasta au gratin (oven grilled),67.5,True,False
+L056,patates,ca,test,4008,"Potato, peeled, raw",20252,"Soup for baby, with vegetables and potatoes",69.23076923076923,True,False
+L058,all,ca,test,11000,"Garlic, fresh",25564,Scallops tart,90.0,False,False
+L059,aceite de oliva,es,test,17270,"Olive oil, extra virgin",12021,"Brie de Meaux cheese, from cow's milk",85.5,False,False
+L061,arroz,es,test,9100,"Rice, raw",2006,"Carrot juice, pure juice",72.0,True,False
+L063,pollo,es,test,36017,"Chicken, breast, without skin, raw",26006,"Alaska pollock, raw",90.0,False,False
+L064,pollastre,ca,test,36017,"Chicken, breast, without skin, raw",25031,Paëlla,65.45454545454547,True,False
+L065,ternera,es,test,6254,"Beef, minced steak, 15% fat, raw",31064,Saccharin sweetener,75.00000000000001,False,False
+L066,vedella,ca,test,6254,"Beef, minced steak, 15% fat, raw",30791,Pork and beef mortadella,75.00000000000001,False,False
+L076,formatge parmesà,ca,test,12120,"Parmesan cheese, from cow's milk",1004,Rum,60.00000000000001,True,False
+L078,xampinyons,ca,test,,NO MATCH,1002,Gin,60.00000000000001,True,True
+L081,salmón,es,test,26036,"Salmon, raw, farmed",25464,"Pizza, salmon",75.00000000000001,False,False
+L083,atún,es,test,26039,"Tuna, plain, canned, drained",11007,"Gelatine, dried",67.5,True,False
+L085,merluza,es,test,26044,"European hake, raw",30156,"Merguez sausage, beef and mutton, raw",64.28571428571429,True,False
+L087,gambas,es,test,10021,"Shrimp or prawn, raw",11033,"Basil, fresh",60.00000000000001,True,False
+L089,cordero,es,test,21504,"Lamb, shoulder, raw",5020,Cider,66.66666666666667,True,False
+L090,xai,ca,test,21504,"Lamb, shoulder, raw",11214,"Soy ""cream"" preparation",60.00000000000001,True,False
+L091,cerdo,es,test,28302,"Pork, loin, raw",20054,"Cardoon, raw",72.0,True,False
+L093,pavo,es,test,36304,"Turkey, escalope, raw",13004,"Avocado, pulp, raw",77.14285714285715,False,False
+L094,gall dindi,ca,test,36304,"Turkey, escalope, raw",12113,"Gruyere cheese, France, Protected Geographical Indication, from cow's milk",63.0,True,False
+L096,mongetes,ca,test,20511,"Haricot bean, canned, drained",13159,Fruit-based beverage for baby from 4/6 months,64.28571428571429,True,False
+L098,carbassó,ca,test,20020,"Courgette or zucchini, pulp and peel, raw",26001,"American bass, raw",67.5,True,False
+L099,brócoli,es,test,20057,"Broccoli, raw",20057,"Broccoli, raw",64.28571428571429,True,False
+L100,guisantes,es,test,20084,"Garden peas, frozen, raw",36700,"Guinea fowl, raw",64.28571428571429,True,False
