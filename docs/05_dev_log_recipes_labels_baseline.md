@@ -27,7 +27,7 @@
 - Typical errors: "tomato" → *Tomato sauce for pizza base*; "lamb" → *Lamb's lettuce*; "pollo" → *Alaska pollock*; "chorizo" → *Pizza, chorizo or salami*.
 
 **Decision rule (updated with the real number):**
-- The AI model (multilingual sentence-transformers + FAISS) must get **at least 12/50 (24%)** on the same test set by [DATE] to be kept. Otherwise the demo uses RapidFuzz and we declare it.
+- The AI model (multilingual sentence-transformers + FAISS) must get **at least 12/50 (24%)** on the same test set by 24th of November to be kept. Otherwise the demo uses RapidFuzz and we declare it.
 
 **Challenges and limitations:**
 - String matching fails on other languages and on names that look similar but mean different foods.
@@ -38,4 +38,4 @@
 - Build the AI matcher with the same output format as `RapidFuzzMatcher`.
 - Write the README run instructions (fix from the smoke test).
 
-**Evidence:** `src/matching.py`, `src/evaluate_matching.py`, `data/results_rapidfuzz_test.csv`. [ADD commit / PR links]
+**Evidence:** `src/matching.py`, `src/evaluate_matching.py`, `data/results_rapidfuzz_test.csv`.
