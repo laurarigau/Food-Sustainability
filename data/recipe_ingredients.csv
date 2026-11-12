@@ -1,0 +1,113 @@
+recipe_id,ingredient,quantity_g,ingredient_clean
+R001,pasta,180,pasta
+R001,tomato,250,tomato
+R001,olive oil,20,olive oil
+R001,garlic,10,garlic
+R002,chicken,250,chicken
+R002,rice,160,rice
+R002,carrot,100,carrot
+R002,olive oil,20,olive oil
+R003,lentils,200,lentil
+R003,tomato,150,tomato
+R003,onion,80,onion
+R003,olive oil,20,olive oil
+R004,broccoli,200,broccoli
+R004,carrot,150,carrot
+R004,bell pepper,150,bell pepper
+R004,rice,160,rice
+R005,beef,250,beef
+R005,pasta,180,pasta
+R005,tomato,200,tomato
+R005,onion,80,onion
+R006,chickpeas,240,chickpea
+R006,coconut milk,200,coconut milk
+R006,onion,100,onion
+R006,tomato,200,tomato
+R006,rice,160,rice
+R006,garlic,10,garlic
+R007,tofu,250,tofu
+R007,rice,160,rice
+R007,broccoli,150,broccoli
+R007,soy sauce,20,soy sauce
+R007,sunflower oil,15,sunflower oil
+R008,kidney beans,240,kidney bean
+R008,tomato,300,tomato
+R008,onion,100,onion
+R008,bell pepper,150,bell pepper
+R008,rice,160,rice
+R009,white beans,240,white bean
+R009,potato,200,potato
+R009,carrot,100,carrot
+R009,onion,80,onion
+R009,olive oil,20,olive oil
+R010,split peas,200,split pea
+R010,carrot,120,carrot
+R010,onion,100,onion
+R010,celery,60,celery
+R011,noodles,180,noodles
+R011,peanut butter,50,peanut butter
+R011,cabbage,150,cabbage
+R011,carrot,100,carrot
+R011,soy sauce,20,soy sauce
+R012,black beans,240,black bean
+R012,corn tortilla,120,corn tortilla
+R012,avocado,150,avocado
+R012,tomato,150,tomato
+R012,onion,50,onion
+R013,egg,240,egg
+R013,potato,400,potato
+R013,onion,100,onion
+R013,olive oil,40,olive oil
+R014,rice,160,rice
+R014,mushroom,250,mushroom
+R014,parmesan,40,parmesan
+R014,onion,80,onion
+R014,butter,20,butter
+R015,egg,240,egg
+R015,tomato,400,tomato
+R015,bell pepper,150,bell pepper
+R015,onion,80,onion
+R015,olive oil,20,olive oil
+R016,wheat tortilla,160,wheat tortilla
+R016,cheddar,100,cheddar
+R016,spinach,150,spinach
+R016,onion,50,onion
+R017,salmon,250,salmon
+R017,potato,400,potato
+R017,olive oil,20,olive oil
+R017,lemon,50,lemon
+R018,tuna,160,tuna
+R018,pasta,180,pasta
+R018,tomato,200,tomato
+R018,olive oil,20,olive oil
+R019,hake,300,hake
+R019,zucchini,200,zucchini
+R019,bell pepper,150,bell pepper
+R019,olive oil,20,olive oil
+R020,shrimp,200,shrimp
+R020,rice,160,rice
+R020,bell pepper,100,bell pepper
+R020,green peas,80,green pea
+R020,olive oil,20,olive oil
+R021,lamb,300,lamb
+R021,potato,300,potato
+R021,carrot,150,carrot
+R021,onion,100,onion
+R022,pork,300,pork
+R022,potato,400,potato
+R022,olive oil,20,olive oil
+R022,garlic,10,garlic
+R023,turkey,200,turkey
+R023,wheat tortilla,160,wheat tortilla
+R023,lettuce,80,lettuce
+R023,tomato,120,tomato
+R024,beef,300,beef
+R024,burger bun,160,burger bun
+R024,lettuce,50,lettuce
+R024,tomato,100,tomato
+R024,cheddar,40,cheddar
+R025,lentils,200,lentil
+R025,chorizo,80,chorizo
+R025,potato,200,potato
+R025,onion,80,onion
+R025,carrot,100,carrot
