@@ -1,141 +1,182 @@
-### Session 3: Planning to Demo Day — 11 November 2026
+# Development Log 04 — Session 3: Planning and Risk Management
 
-**Objective:** Identify bottlenecks and dependencies, define the scope for 2 December, assess risks, and establish milestones and team working rules.
+**Project:** Food Sustainability  
+**Session:** 3 (11 November 2026)  
+**Log updated:** 13 November 2026  
+**Final demonstration:** 2 December 2026
 
-**Documentation note (updated 13 November):** This log combines the confirmed implementation progress reported by us with proposed planning decisions. The original classroom photos, token allocations, red-team feedback, and external smoke-test observations were not available when this update was written. Proposed items are explicitly labelled and should not be interpreted as activities or results verified in class.
+> **Evidence note:** This log reconstructs the Session 3 exercises using the team's reported project progress. It is **not** a record of unverified classroom votes, photos, external feedback or completed tests. Proposed decisions, deadlines and responsibilities require team confirmation.
 
----
+## Project status and evidence
 
-#### Work 1: Hill chart and dependency wall
+The team reports that the repository contains 25 recipes with ingredients in grams, Agribalyse data, 100 reviewed ingredient labels, a CO₂e calculator, a weekly planner that respects supported dietary constraints and avoids repeating protein sources, a meal-swap demo, a README and an automated smoke test. The Streamlit interface remains to be built. These statements are based on the team's progress update and have not been independently verified in this log.
 
-The following is a **current status assessment**, not a reconstruction of the physical hill chart created in class.
+On the fixed set of 50 test ingredients, RapidFuzz matched **7/50 (14%)** and the first AI version matched **11/50 (22%)**. The improvement is **8 percentage points**, below the team's required **10 percentage points**. The minimum passing result is therefore **12/50 (24%)**. The second AI version in notebook 05 is awaiting evaluation.
 
-| Component | Current position | Dependencies / status |
+## Work 1 — Hill Chart and Dependency Wall
+
+The hill chart represents **technical uncertainty**, not percentage of work completed. *Uphill* means we still need to discover whether or how something will work; *downhill* means the approach is understood and mainly needs execution.
+
+| Component | Hill position | Rationale |
 |---|---|---|
-| Data (Open Food Facts + Agribalyse) | Downhill | Agribalyse data and 100 reviewed ingredient labels are available; the exact integration with OFF should be checked in the repository. |
-| Recipes | Downhill | 25 recipes with ingredient quantities in grams are available in `data/`. |
-| Ingredient matching (AI) | Uphill | The first AI version scores 11/50 against 7/50 for RapidFuzz; a second version still needs evaluation. |
-| CO2e calculation | Downhill | Implemented in `src/`; depends on the ingredient-to-impact mapping. |
-| Weekly planner | Downhill | Implemented in `src/`; respects dietary constraints and avoids repeating protein sources, according to the current team update. |
-| Interface (Streamlit) | Uphill | Not yet implemented; needs stable outputs from the existing planner and CO2e code. |
+| AI ingredient matching | Uphill | First AI version misses the improvement threshold; notebook 05 still needs evaluation. |
+| Recipe and Agribalyse data preparation | Downhill | 25 recipes and 100 reviewed labels are reported as available. |
+| CO₂e calculator | Downhill | Core calculation code is reported as implemented. |
+| Weekly meal planner | Downhill | Diet constraints and protein variety are reported as implemented. |
+| Streamlit interface | Early downhill (proposed) | Core user flow is defined, but implementation and integration remain pending. |
 
-**Main bottleneck:** Ingredient matching remains the main *quality and evaluation* uncertainty. However, it no longer blocks the existing demo because the team can use its manually reviewed labels. Streamlit integration is the remaining user-facing delivery dependency.
+**Dependency wall:** Recipe and Agribalyse data → ingredient mapping (AI or reviewed-label fallback) → CO₂e calculation; recipe data and constraints → weekly planner; planner and CO₂e outputs → meal swap and savings → Streamlit presentation.
 
-**Mitigation (proposal):** Keep the verified-label mapping as a clearly disclosed fallback, use a stable output schema between matching, footprint calculation and the planner, and develop the interface independently of the second AI experiment.
+**Main bottleneck (red dot):** AI ingredient matching and its evaluation. The operational demo can use reviewed labels if necessary, but this fallback must not be presented as successful AI performance.
 
-**Original hill-chart photo:** Not available; attach if recovered. No classroom positions are claimed here.
+**Evidence:** This is a reconstructed hill chart and dependency wall. The original classroom post-it photograph is unavailable; attach an authentic photograph if the team has one.
 
-#### Work 2: Press release (draft for 2 December)
+## Work 2 — Press Release
 
-**Headline:** Households can plan a week of meals that fits their dietary preferences and understand the estimated carbon footprint of each meal.
+**Imagined publication date: 2 December 2026**
 
-**Problem:** It is difficult for people to compare the environmental impact of everyday meals. Ingredient-level footprint data is not straightforward to interpret or combine into a practical weekly plan.
+### Food Sustainability helps users plan lower-carbon weekly meals
 
-**Solution:** Food Sustainability uses a curated collection of 25 recipes, ingredient quantities in grams and Agribalyse impact data to estimate meal-level CO2e. The existing Python planner creates a weekly menu under dietary and protein-variety constraints. A working demo can replace a meal and show the change in estimated emissions. A Streamlit interface is planned for the final presentation.
+**Problem.** People who want to eat more sustainably often lack accessible information about the environmental impact of individual meals. Comparing ingredients and building a varied weekly plan takes time.
 
-**Illustrative user quote (not collected from an actual user):** “I want to understand which meal swaps could reduce my weekly food footprint without having to calculate everything myself.”
+**Solution.** Food Sustainability is designed to combine recipes with Agribalyse environmental-impact data. The system plans meals within supported dietary constraints, avoids repeating protein sources and estimates meal-related CO₂e. A user can compare a meal with an alternative and view the estimated emissions saved.
 
-**FAQs**
+**Illustrative user quote (hypothetical, not actual user feedback):** “I want to eat more sustainably without calculating the environmental impact of every meal myself.”
 
-1. **Where does the data come from?** The project uses Agribalyse impact data, 25 curated recipes with gram quantities, and 100 reviewed ingredient labels. Open Food Facts is part of the original project data context; the exact data flow should be verified before the presentation.
-2. **How accurate is the AI?** On the team's 50-item evaluation set, RapidFuzz matched 7/50 correctly (14%) and the first AI version matched 11/50 (22%), an improvement of 8 percentage points. This is below the team's 10-point improvement threshold. The second AI version has not yet been evaluated, so no additional accuracy is claimed.
-3. **What is manual or simplified?** Recipes and reviewed ingredient labels are curated manually. The weekly planner uses explicit rules rather than an AI recommender. The demo can use the reviewed labels when AI matching does not meet the agreed threshold. This limitation will be disclosed.
+### Frequently asked questions
 
-**Original A3 press-release photo:** Not available; attach if recovered. This text is a revised draft, not a transcription of the in-class poster.
+**1. Where does the environmental data come from?**  
+The project uses Agribalyse data and a curated set of 25 recipes with ingredient quantities in grams. Estimates depend on the ingredient mappings and data assumptions.
 
-#### Work 3: Buy a feature — proposed final scope
+**2. How accurate is the AI?**  
+On the fixed 50-ingredient test, the first AI version matched 11 items correctly, compared with 7 for RapidFuzz. The improved version has not yet been evaluated. We will report the measured result rather than claim accuracy we have not demonstrated.
 
-**Important:** The table below is a **proposed MoSCoW prioritisation**, not the outcome of the in-class token exercise. Token prices and votes are unknown.
+**3. What is unfinished or simulated?**  
+The Streamlit interface is not yet complete. The press-release user quote is hypothetical. If AI matching fails the predefined benchmark, the final demo will use reviewed ingredient mappings and disclose that choice.
 
-| Feature | Proposed priority | Definition of done | Classroom tokens |
+**Evidence:** This is a drafted press release, not an original photographed A3 classroom poster. Attach the authentic poster photograph if available.
+
+## Work 3 — Buy a Feature
+
+The following is a **proposed prioritization**, not the result of the classroom token allocation. Feature prices are planning estimates; no votes or investments by other teams are claimed.
+
+| Feature | Proposed price | Priority | Done when |
+|---|---:|---|---|
+| Streamlit interface | 3 tokens | Must | A user can generate and view a weekly meal plan. |
+| CO₂e savings visualization | 2 tokens | Must | A user can replace a meal and view estimated CO₂e savings. |
+| Improved AI ingredient matching | 3 tokens | Should | Notebook 05 is evaluated on the same 50 items and achieves at least 12/50 correct matches to pass the stated threshold. |
+| Dietary preferences | 2 tokens | Should | The interface correctly exposes the constraints already supported by the planner. |
+| Advanced analytics dashboard | 3 tokens | Won't for demo | Excluded from the 2 December scope. |
+
+**Proposed 10-token scope:** Streamlit (3) + savings visualization (2) + AI evaluation/improvement (3) + dietary preferences (2) = **10 tokens**. This is an internal planning allocation, not classroom spending.
+
+**Time-boxed spike:** Run notebook 05 on the fixed 50-item set, record exact matches and errors, and decide whether the AI meets the threshold. The team must agree on the time-box and owner.
+
+**Cut list:** Advanced analytics dashboard; additional recipe categories beyond the current dataset; other features that do not support the critical demo path.
+
+**Missing classroom evidence:** Feature-card photograph, other teams' token allocations and final classroom voting outcomes.
+
+## Work 4 — What Went Wrong? / Failure Lessons
+
+The planning exercise emphasizes failure modes that can undermine an otherwise promising demo: late integration, undocumented assumptions, unreliable deployment steps and insufficient end-to-end testing.
+
+**Application to our project:** Working scripts in isolation do not prove that a new user can reproduce the complete flow. We should integrate early, keep the README executable, test from a clean environment and retain a simple terminal demo as a backup.
+
+**Evidence note:** We do not have the team's original classroom discussion notes, so these are proposed project-specific lessons rather than a transcript of the exercise.
+
+## Work 5 — Pre-mortem
+
+**Scenario:** It is 2 December and the demonstration has failed. What most likely caused the failure?
+
+| Risk | Likelihood (proposed) | Impact (proposed) | Mitigation / fallback |
 |---|---|---|---|
-| Weekly menu generation | Must | A seven-day plan is generated from available recipes and respects the implemented dietary and protein-variety rules. | Not recorded |
-| Meal and weekly CO2e estimates | Must | The demo calculates and displays estimates from ingredient quantities and mapped Agribalyse values. | Not recorded |
-| Meal swap and emissions comparison | Must | Replacing one meal displays the estimated change in CO2e. | Not recorded |
-| Streamlit interface | Must | A user can run the main demo path without editing Python source code. | Not recorded |
-| Second AI matcher evaluation | Should | Results are reported on the same fixed 50-item test set and compared with RapidFuzz. | Not recorded |
-| Confidence / unmatched-ingredient disclosure | Should | Unsupported or uncertain mappings are explicitly identified rather than silently treated as verified. | Not recorded |
-| Grocery list | Won't for demo | Deferred beyond 2 December. | Not recorded |
-| Price optimisation | Won't for demo | Deferred beyond 2 December. | Not recorded |
-| Embedding-based recipe recommendation | Won't for demo | Deferred beyond 2 December; the existing rule-based planner remains. | Not recorded |
+| AI ingredient matching misses benchmark | High | High | Evaluate notebook 05 promptly; use reviewed mappings in demo if needed, and disclose limitations. |
+| Streamlit integration fails | Medium | High | Test the end-to-end flow early; retain `python src/run_demo.py` as backup. |
+| Wrong ingredient mappings distort CO₂e estimates | Medium | High | Restrict demo to reviewed mappings and document limitations. |
 
-**Proposed cut list:** Grocery-list generation, price optimisation and embedding-based recipe recommendation. The aim is to protect the end-to-end demo from scope growth.
+### Decision rule for the highest risk
 
-**Proposed spike:** Evaluate the second AI ingredient matcher in notebook 05 on the existing 50-item test set by 24 November. **Success criterion:** at least 12/50 correct, equivalent to a gain of at least 10 percentage points over RapidFuzz's 7/50. **If unsuccessful:** keep the reviewed-label fallback for the demo and document the unsuccessful experiment.
+**Metric:** Correct matches out of the **same 50 test ingredients**.  
+**Baseline:** RapidFuzz 7/50.  
+**Passing threshold:** AI ≥12/50 (at least +10 percentage points).  
+**Proposed decision date:** 20 November 2026; team confirmation required.
 
-**Original buy-a-feature cards and votes:** Not available. Do not report invented prices, token totals or classroom decisions.
+- **Continue:** AI reaches at least 12/50; document the evaluation and integrate the supported AI use case.
+- **Revise:** Performance improves but misses the target; inspect errors and consider a narrower, explicitly labeled AI experiment.
+- **Stop for final demo:** The threshold is not reached by the agreed cutoff; use reviewed mappings for the operational demo and report the AI experiment honestly.
 
-#### Work 4: What went wrong? — learning from the case studies
+**Evidence:** Original red-team feedback and classroom likelihood/impact voting are unavailable. This is a reconstructed assessment.
 
-Session 3 discussed two examples of integration and release failures: Healthcare.gov (2013), where separately developed parts were integrated too late, and Knight Capital (2012), where a release inconsistency activated old code. The relevant lesson for this project is to test the complete demo path and review changes before the final presentation. These are class examples, not incidents that occurred in Food Sustainability.
+## Work 6 — Milestones and Team Rules
 
-#### Work 5: Pre-mortem — proposed risk assessment
-
-The following risks are a **new team planning proposal**, not a record of the missing red-team post-its. Likelihood and impact are qualitative estimates.
-
-| Risk | Likelihood | Impact | Fallback | Proposed decision rule |
-|---|---|---|---|---|
-| AI ingredient matching fails to reach the agreed improvement threshold | High | Medium | Use the 100 reviewed labels for the supported demo ingredients and disclose the limitation. | If notebook 05 scores below 12/50 on the fixed test set by 24 Nov, stop further matcher development for the demo and use the reviewed-label path. |
-| Streamlit integration is incomplete or unstable | Medium | High | Run the existing `python src/run_demo.py` command-line demonstration. | If the full interface flow is not working by the 27 Nov code freeze, use the tested CLI demo for the presentation. |
-| Missing or incorrect ingredient mappings lead to misleading CO2e outputs | Medium | High | Restrict the demonstration to checked recipes/ingredients and label estimates as such. | Before code freeze, manually verify the ingredient mappings and outputs used in the final demonstration; remove or flag any unverified cases. |
-
-**Red team / classroom likelihood-impact grid:** Not available. The table above should be reviewed by the team before being treated as an agreed risk register.
-
-#### Work 6: Milestones and team rules
-
-**Proposed milestones (dates and owners require team confirmation):**
+### Proposed milestones
 
 | Date | Milestone | Done when | Owner |
 |---|---|---|---|
-| 13 Nov | Existing working skeleton and data checkpoint | The 25 recipes, 100 reviewed labels, CO2e code, weekly planner, demo script and smoke-test script are present in the repository, as reported by the team. | Team — existing work |
-| 18 Nov | Documentation and local reproducibility | `docs/04` is updated; a teammate installs dependencies and runs the CLI demo using the README. | To assign |
-| 24 Nov | AI decision | Notebook 05 is evaluated on the same fixed 50 examples; the score, comparison and keep/stop decision are logged. | To assign |
-| 27 Nov | Code freeze | Streamlit demo path works end to end, or the documented CLI fallback is selected; only bug fixes follow. | To assign |
-| 29 Nov | Rehearsal | Someone outside the development team attempts the demo from the README; blockers and fixes are logged. | To assign |
-| 2 Dec | Demo day | Present the working main loop, state which components are manual or rule-based, and explain the AI benchmark decision. | Whole team |
+| 16 Nov | AI evaluation | Notebook 05 runs on the fixed test set and results are logged. | To assign |
+| 20 Nov | Streamlit MVP | Users can generate and view a weekly plan. | To assign |
+| 24 Nov | End-to-end integration | Meal swap and CO₂e savings work through Streamlit. | To assign |
+| 26 Nov | External smoke test | Another team attempts to run the demo using only the README; blockers are logged. | To assign |
+| 29 Nov | Code freeze | No new features; only critical fixes. | Whole team |
+| 1 Dec | Rehearsal | Full demo and terminal backup are tested. | Whole team |
+| 2 Dec | Final demonstration | Demo runs and repository/logs are up to date. | Whole team |
 
-**Proposed team rules (not yet confirmed as classroom selections):**
+These dates and assignments are **proposals**, not confirmed commitments.
 
-| Area | Proposed rule |
+### Proposed team rules
+
+1. **Branches:** One short-lived branch per task; aim to merge within 1–2 days.
+2. **Review:** At least one teammate reviews each pull request.
+3. **Integration:** Merge small changes regularly; aim to update `main` at least twice a week.
+4. **Testing:** Run the critical-path smoke test before merging changes that affect the demo.
+5. **Scope:** After code freeze, accept only fixes essential to a reliable demonstration.
+
+**Critical path:** Recipe data → ingredient mapping → CO₂e calculation and weekly planning → meal swap → savings display.
+
+## Work 7 — Smoke Test Swap
+
+**Objective:** Confirm that a person outside the team can clone and run the project from the README alone.
+
+### Instructions for the external team
+
+1. Clone the repository.
+2. Follow the README's environment setup instructions.
+3. Install dependencies: `pip install -r requirements.txt`.
+4. Run the terminal demo: `python src/run_demo.py`.
+5. Verify that the demo produces a meal replacement and estimated CO₂e savings.
+6. Record blockers, unclear instructions and the exact error messages, without receiving verbal guidance.
+
+### Evidence and results
+
+| Check | Current status |
 |---|---|
-| Branches | One short branch per task, merged within 1–2 days. |
-| Review | Another team member reviews each pull request before merging. |
-| Integration | Integrate into `main` at least twice a week. |
-| Testing | Run the critical-path smoke test before every merge. |
+| README instructions | Reported as present; not independently verified here |
+| Terminal demo | Reported as implemented; not independently verified here |
+| Automated test in `tests/` | Reported as present; not equivalent to external validation |
+| Another team's independent run | **Not verified / pending** |
+| Actual blockers and fixes | **Not available; do not invent** |
 
-#### Work 7: Smoke test swap
+### Potential fix list (not observed failures)
 
-**Internal smoke-test status:** The team reports that a smoke test exists in `tests/`, and that the README contains setup and execution instructions. This does **not** establish that the test has passed on another machine or that another team has completed the classroom swap.
+| Potential blocker | Action | Owner |
+|---|---|---|
+| Missing package | Update dependency list | To assign |
+| Unclear setup step | Clarify README | To assign |
+| Relative file-path failure | Test from repository root and fix paths | To assign |
+| Demo exception | Reproduce, fix and rerun | To assign |
 
-**External team that tested the repository:** Not recorded.
+**Definition of done:** An external tester can complete the critical demo path using only repository instructions; actual blockers and their resolutions are documented.
 
-**External test outcome:** Not recorded. Do not mark as passed or failed without evidence.
+## Final scope and disclosure checklist
 
-| Check / potential blocker | Next action | Owner | Due |
-|---|---|---|---|
-| Install dependencies from `requirements.txt` | Have another person perform a clean installation and record the result. | To assign | Before 29 Nov |
-| Run `python src/run_demo.py` | Verify the weekly menu, meal replacement and CO2e comparison without developer assistance. | To assign | Before 29 Nov |
-| Run the test script in `tests/` | Record the exact command, pass/fail status and any errors. | To assign | Before 27 Nov |
-| Run the Streamlit demo | Test the same critical path once the interface is implemented. | To assign | Before 29 Nov |
+- [ ] Run notebook 05 and report its exact result on the fixed 50-item benchmark.
+- [ ] Confirm final AI-versus-reviewed-mapping decision.
+- [ ] Implement and integrate Streamlit or document the terminal-only fallback.
+- [ ] Assign milestone owners and confirm dates.
+- [ ] Obtain actual external smoke-test feedback and log fixes.
+- [ ] Attach original classroom photographs only if available; otherwise retain reconstruction labels.
+- [ ] Ensure each team member contributes and repository history reflects actual work.
+- [ ] Prepare one final slide summarizing demo, AI evidence, risks and scope decisions.
+- [ ] Rehearse the complete demo before 2 December.
 
-**Classroom smoke-test feedback / fix list:** Not available. Replace this note only if the original evidence is recovered or a new external test is actually performed.
-
----
-
-#### Decisions and rationale
-
-- **Fixed deadline, variable scope:** Prioritise a reliable end-to-end demonstration for 2 December rather than adding untested features.
-- **Preserve a working fallback:** The reviewed-label mapping supports the existing demo even if AI matching does not meet the success threshold.
-- **Evaluate AI transparently:** The first version improves accuracy from 14% to 22% on 50 test items, but misses the agreed 10-percentage-point improvement threshold. Evaluate the second version before deciding whether to integrate it.
-- **Separate matching from planning:** Ingredient matching is the experimental AI component; menu generation uses explicit rules. Avoid presenting rule-based logic as AI.
-- **Document uncertainty:** Report the evaluation set, limitations, manual curation, and any unsupported mappings rather than claiming broader accuracy or coverage.
-
-#### Next steps
-
-1. Execute notebook 05 in Colab, record the second AI version's score on the fixed test set and apply the agreed decision rule.
-2. Validate that the README and existing CLI demo work in a clean environment.
-3. Build the smallest Streamlit interface around the already working planner, footprint calculation and meal-swap comparison.
-4. Confirm owners and dates, complete an independent smoke test, and record the actual outcome.
-5. Rehearse the final demo and prepare one slide explaining the system, benchmark, risks and fallback.
-
-**Evidence currently available:** Repository files and the team's reported implementation status; benchmark results of 7/50 for RapidFuzz and 11/50 for AI version 1. **Evidence not available:** Original hill-chart and A3 photographs, buy-a-feature token records, red-team post-its, and external smoke-test feedback.
+**Integrity statement:** Proposed feature prices, risk ratings, dates, team rules and example language are clearly marked as proposals. No classroom vote, external test, photo, AI result or completed integration has been fabricated.
