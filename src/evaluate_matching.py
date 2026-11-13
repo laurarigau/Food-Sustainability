@@ -56,6 +56,18 @@ def choose_threshold(pred_tune: pd.DataFrame, grid) -> tuple[float, float]:
             best_t, best_acc = float(t), float(acc)
     return best_t, best_acc
 
+def evaluate_tune(matcher, grid, labels=None):
+    """Evaluate only on TUNE, without accessing TEST."""
+    labels = load_labels() if labels is None else labels
+    tune_labels = labels[labels["split"] == "tune"]
+
+    pred_tune = predict(matcher, tune_labels)
+    threshold, tune_acc = choose_threshold(pred_tune, grid)
+
+    return {
+        "threshold": threshold,
+        "tune_acc": tune_acc
+    }
 
 def evaluate(matcher, grid, labels: pd.DataFrame | None = None) -> dict:
     labels = load_labels() if labels is None else labels
