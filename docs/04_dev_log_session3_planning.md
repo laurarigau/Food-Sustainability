@@ -5,7 +5,7 @@
 **Log updated:** 13 November 2026  
 **Final demonstration:** 2 December 2026
 
-> **Evidence note:** This log reconstructs the Session 3 exercises using the team's reported project progress. It is **not** a record of unverified classroom votes, photos, external feedback or completed tests. Proposed decisions, deadlines and responsibilities require team confirmation.
+> **Evidence note:** This log reconstructs the Session 3 exercises using the team's reported project progress. It is **not** a record of unverified classroom votes, photos, external feedback or completed tests. 
 
 ## Project status and evidence
 
