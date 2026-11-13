@@ -3,19 +3,23 @@
 
 ## Log Entries
 
-| # | Date | Entry |
-|---|---|---|
-| 01 | 28 Oct 2026 | [Data Cleaning](01_dev_log_cleaning_data.md) |
-| 02 | [DATE] | [Recipe Dataset and First End-to-End Skeleton](02_dev_log_recipes_and_skeleton.md) |
-| 03 | [DATE] | [Change of Direction: Where the AI Is Used](03_dev_log_change_of_direction_ai.md) |
-| 04 | 11 Nov 2026 | [Session 3: Planning to Demo Day](04_dev_log_session3_planning.md) |
+| #  | Date        | Entry                                                                              |
+|----|-------------|------------------------------------------------------------------------------------|
+| 01 | 28 Oct 2026 | [Data Cleaning](01_dev_log_cleaning_data.md)                                       |
+| 02 | 12 Nov 2026 | [Recipe Dataset and First End-to-End Skeleton](02_dev_log_recipes_and_skeleton.md) |
+| 03 | 12 Nov 2026 | [Change of Direction: Where the AI Is Used](03_dev_log_change_of_direction_ai.md)  |
+| 04 | 11 Nov 2026 | [Planning to Demo Day](04_dev_log_session3_planning.md)                            |
+| 05 | 13 Nov 2026 | [Streamlit Interface and User Experience](06_dev_log_session3_planning.md)         |
 
-## Current Status (updated 12 Nov 2026)
+## Current Status (updated 13 Nov 2026)
 
-- **Level:** 2. The skeleton runs end to end.
-- **Real:** Open Food Facts data, Agribalyse CO2e values, CO2e calculation.
-- **Faked / stub:** recipes (5 by hand), ingredient matching (exact name only), weekly planner (by hand), interface (one simple page).
-- **Riskiest question:** Can we match each recipe ingredient to the right food in Agribalyse?
+- **Level:** 3. The core pipeline is implemented, including recipe matching, CO₂e calculations and rule-based weekly planning. The user-facing Streamlit interface has an initial implementation pending end-to-end validation.
+- **Real:** Open Food Facts-derived recipe data, Agribalyse CO₂e values, ingredient-level emissions calculations and implemented matching methods.
+- **AI:** Multilingual embedding-based ingredient matching with FAISS retrieval. The second version achieved 12/50 correct matches (24%) on the test set, meeting the team's minimum threshold.
+- **Planner:** Rule-based weekly planning, respecting dietary preferences and avoiding repeated main proteins.
+- **Interface:** Initial Streamlit implementation in src/app.py, connecting the existing backend functions.
+- **Remaining validation**: Full interface testing, recipe-level carbon validation, final AI integration and smoke test.
+- **Main risk**: Ingredient-matching accuracy and the reliability of the resulting carbon estimates.
 - **Next milestone:** [see entry 04]
 
 ---
@@ -54,11 +58,15 @@ Build a working pipeline using a small dataset before expanding the recipe colle
 ## Next Steps
 
 - [x] Set up the GitHub repository and task board.
-- [x] Curate the first recipes. (5 recipes; target 20–30)
-- [x] Implement the initial calculations.
+- [x] Curate and expand the recipe dataset to 25 recipes.
+- [x] Implement ingredient level CO2e calculations.
 - [x] Test the end-to-end pipeline. (Level 2 skeleton)
+- [X] Build the RapidFuzz baseline. 
+- [X] Label 100 ingredients 
+- [X] Implement the rule-based weekly planner.
+- [X] Build and evaluate embeddings + FAISS matcher.
+- [X] Move code from notebooks to `src/` and add a smoke test in `tests/`.
+- [X] Develop the initial Streamlit interface.
 - [ ] Replace exact matching with RapidFuzz baseline.
 - [ ] Label 100 ingredients (50 tune / 50 test).
-- [ ] Expand to 20–30 recipes.
-- [ ] Build and evaluate embeddings + FAISS matcher.
-- [ ] Move code from notebooks to `src/` and add a smoke test in `tests/`.
+- [ ] Update the README and complete the final smoke test. 
