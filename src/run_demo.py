@@ -11,7 +11,7 @@ import argparse
 import pandas as pd
 
 from co2e import get_matcher, ingredient_co2e, load_recipes, recipe_co2e
-from planner import ALLOWED_TAGS, alternatives, plan_week, swap_meal, weekly_total
+from planner import ALLOWED_TAGS, alternatives, plan_week, swap_meal, swap_savings, weekly_total
 
 
 def show(plan: pd.DataFrame, people: int) -> None:
@@ -40,18 +40,24 @@ def main():
     plan = plan_week(rec, args.diet, args.goal, args.seed)
     show(plan, args.people)
 
-    # Swap the highest-CO2e meal for its lowest-CO2e alternative
+    # Swap the highest-CO2e meal for its lowest-CO2e alternative (only if it really saves CO2e)
     worst = plan.loc[plan["kg_co2e_serving"].idxmax()]
     options = alternatives(plan, rec, args.diet, worst["day"])
-    if len(options):
+    options = options[options["complete"] & (options["kg_co2e_serving"] < worst["kg_co2e_serving"])]
+    if not len(options):
+        print(f"\nNo lower-CO2e alternative for {worst['day']} ({worst['recipe_name']}): no swap needed.")
+    else:
         best = options.iloc[0]
         print(f"\n=== Swap {worst['day']}: {worst['recipe_name']} ({worst['kg_co2e_serving']:.2f}) "
               f"-> {best['recipe_name']} ({best['kg_co2e_serving']:.2f}) ===\n")
-        before = weekly_total(plan, args.people)
+        original = plan
         plan = swap_meal(plan, rec, args.diet, worst["day"], best["recipe_id"])
         show(plan, args.people)
-        after = weekly_total(plan, args.people)
-        print(f"Saved: {before - after:.2f} kg CO2e ({(before - after) / before:.0%})")
+        saved, comparable = swap_savings(original, plan, args.people)
+        if comparable:
+            print(f"Saved by this swap: {saved:.2f} kg CO2e")
+        else:
+            print("Saving not calculated: the swapped meals have uncertain ingredients.")
 
 
 if __name__ == "__main__":

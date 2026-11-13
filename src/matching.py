@@ -17,8 +17,8 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 AGRIBALYSE_FILE = DATA_DIR / "agribalyse_synthese.csv"
 
 # Below this score (0-100) the match is flagged as "uncertain" and no CO2e is shown.
-# Choose it on the TUNE split only (see evaluate_matching.py).
-DEFAULT_THRESHOLD = 60
+# 75 = value chosen on the TUNE split by evaluate_matching.py (see dev log 05).
+DEFAULT_THRESHOLD = 75
 
 
 def load_agribalyse(path: Path = AGRIBALYSE_FILE) -> pd.DataFrame:

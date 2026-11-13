@@ -9,18 +9,20 @@
 | 02 | 12 Nov 2026 | [Recipe Dataset and First End-to-End Skeleton](02_dev_log_recipes_and_skeleton.md) |
 | 03 | 12 Nov 2026 | [Change of Direction: Where the AI Is Used](03_dev_log_change_of_direction_ai.md)  |
 | 04 | 11 Nov 2026 | [Planning to Demo Day](04_dev_log_session3_planning.md)                            |
-| 05 | 13 Nov 2026 | [Streamlit Interface and User Experience](06_dev_log_session3_planning.md)         |
+| 05 | 12 Nov 2026 | [Recipes, Ingredient Labels and RapidFuzz Baseline](05_dev_log_recipes_labels_baseline.md) |
+| 06 | 13 Nov 2026 | [Streamlit Interface and User Experience](06_dev_log_streamlit_interface.md)       |
+| 07 | 13 Nov 2026 | [AI Matcher Revision 2 and Review Fixes](07_dev_log_ai_rev2_and_review_fixes.md)   |
 
 ## Current Status (updated 13 Nov 2026)
 
-- **Level:** 3. The core pipeline is implemented, including recipe matching, CO₂e calculations and rule-based weekly planning. The user-facing Streamlit interface has an initial implementation pending end-to-end validation.
+- **Level:** 3. The core pipeline is implemented, including recipe matching, CO₂e calculations and rule-based weekly planning. The Streamlit interface runs end to end (generate a plan, swap a meal, see the savings) and is covered by the smoke test (entry 07).
 - **Real:** Open Food Facts-derived recipe data, Agribalyse CO₂e values, ingredient-level emissions calculations and implemented matching methods.
-- **AI:** Multilingual embedding-based ingredient matching with FAISS retrieval. The second version achieved 12/50 correct matches (24%) on the test set, meeting the team's minimum threshold.
+- **AI:** Multilingual embedding-based ingredient matching with FAISS retrieval. The second version (`BAAI/bge-m3`) achieved 12/50 correct matches (24%) on the test set, meeting the team's minimum threshold. It still makes 25/50 confident errors, so the demo uses the team-verified labels by default (entry 07).
 - **Planner:** Rule-based weekly planning, respecting dietary preferences and avoiding repeated main proteins.
-- **Interface:** Initial Streamlit implementation in src/app.py, connecting the existing backend functions.
-- **Remaining validation**: Full interface testing, recipe-level carbon validation, final AI integration and smoke test.
+- **Interface:** Streamlit app in `src/app.py` (`streamlit run src/app.py`), connecting the existing backend functions.
+- **Remaining validation**: recipe-level carbon validation, AI run with `--objective safe` (entry 07), external smoke test.
 - **Main risk**: Ingredient-matching accuracy and the reliability of the resulting carbon estimates.
-- **Next milestone:** [see entry 04]
+- **Next milestone:** external smoke test and rehearsal (see entries 04 and 07).
 
 ---
 
@@ -52,7 +54,7 @@ Build a working pipeline using a small dataset before expanding the recipe colle
 
 - ~~Which impact-factor source and system boundary will we use?~~ Agribalyse (kg CO2e per kg), joined to Open Food Facts. [ADD system boundary if decided]
 - How will we handle missing ingredient data? *(Partly answered: if the matcher is not confident enough, the app shows "uncertain" instead of a number.)*
-- ~~Which embedding model will we evaluate?~~ A multilingual sentence-transformers model with FAISS search. [ADD exact model name]
+- ~~Which embedding model will we evaluate?~~ Several multilingual sentence-transformers models with FAISS search; best: `BAAI/bge-m3` (entry 07).
 - How will we divide responsibilities across the team? *(See milestones and owners in entry 04.)*
 
 ## Next Steps
@@ -67,6 +69,5 @@ Build a working pipeline using a small dataset before expanding the recipe colle
 - [X] Build and evaluate embeddings + FAISS matcher.
 - [X] Move code from notebooks to `src/` and add a smoke test in `tests/`.
 - [X] Develop the initial Streamlit interface.
-- [ ] Replace exact matching with RapidFuzz baseline.
-- [ ] Label 100 ingredients (50 tune / 50 test).
-- [ ] Update the README and complete the final smoke test. 
+- [X] Update the README and fix the issues found running from a clean environment (entry 07).
+- [ ] External smoke test (another team, README only), rehearsal and final demo (2 Dec). 

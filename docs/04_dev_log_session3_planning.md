@@ -5,6 +5,8 @@
 **Log updated:** 13 November 2026  
 **Final demonstration:** 2 December 2026
 
+> **Update 13 Nov 2026:** notebook 05 has been evaluated (AI rev 2: **12/50**, meets the decision rule) and the Streamlit app is built. See entries 06 and 07. The text below is kept as written on 11–13 Nov.
+
 > **Evidence note:** This log reconstructs the Session 3 exercises using the team's reported project progress. It is **not** a record of unverified classroom votes, photos, external feedback or completed tests. 
 
 ## Project status and evidence
