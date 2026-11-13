@@ -1,116 +1,83 @@
+# Weekly Meal Planner — Food Sustainability
 
-# Weekly Meal Planner 
+A tool that plans a 7-day menu for a household's diet and estimates the carbon footprint
+(kg CO₂e) of each meal, so the user can swap meals for lower-carbon alternatives.
 
-## 1. Project Overview
-The Weekly Meal Planner is a proposed AI-assisted tool designed to help households create practical weekly menus with a lower estimated food-related carbon footprint.
-The system combines recipe data, ingredient information and environmental impact factors to recommend meals based on user preferences and compare their estimated emissions.
+Course project for *Perspectives of AI* (Esade). Final demo: 2 December 2026.
 
-## 2. Problem Statement
-Planning meals with a lower environmental impact can require researching recipes, checking ingredients and comparing environmental information across different sources. This information is not always available in one place or presented in a consistent format.
-Our project aims to simplify this process by bringing recipe matching and estimated food-footprint information together in one tool.
+## How it works
 
-## 3. User Value
-Users can:
-- Discover recipes that match their dietary preferences and food preferences.
-- Compare estimated carbon footprints across meal options.
-- Generate a proposed seven-day menu.
-- Replace individual meals and compare changes in the estimated weekly footprint.
-- Understand where estimates rely on incomplete data or category averages.
-
-## 4. Proposed Features
-- **Recipe dataset:** A curated collection of recipes, ingredients, quantities, serving sizes and dietary tags.
-- **Data processing:** Cleaning ingredient names, standardising quantities and mapping ingredients to compatible environmental impact factors.
-- **AI-powered recipe matching:** Using pretrained text embeddings to retrieve and rank recipes based on user preferences.
-- **Dietary constraints:** Applying deterministic checks to exclude recipes that violate supported dietary requirements.
-- **Carbon-footprint estimation:** Calculating estimated kg CO₂e per serving when compatible data is available.
-- **Weekly menu output:** Displaying a seven-day menu, meal-level estimates and the estimated total footprint.
-- **Data transparency:** Flagging missing values, assumptions and estimates based on category averages.
-
-## 5. Data Sources
-### Open Food Facts
-[Open Food Facts](https://world.openfoodfacts.org/) is a proposed source of product and ingredient information. Its suitability for the recipe dataset will depend on data coverage, access conditions and licensing.
-
-### Recipe Dataset
-A small, curated recipe dataset will provide the initial recipes, ingredient quantities, serving sizes and dietary tags.
-
-### Environmental Impact Factors
-A compatible source of food-related environmental impact factors will be selected and reviewed. The project will document the source, units, system boundaries, coverage and licence before using the factors for comparisons.
-
-**Important:** Environmental estimates will only be treated as evidence-based once their underlying data and calculation method have been validated.
-
-## 6. Proposed Technology
-- **Programming language:** Python
-- **Data storage:** CSV files for the initial prototype
-- **Data processing:** Ingredient cleaning, quantity standardisation and category mapping
-- **AI component:** Pretrained text embeddings for recipe retrieval and ranking
-- **Interface:** A simple user interface to be selected during development
-- **Evaluation:** Comparison of embedding-based retrieval with a keyword-based baseline
-The technology choices may be refined as implementation progresses.
-
-## 7. Initial Prototype Scope
-The first end-to-end prototype will use approximately 20–30 curated recipes, subject to data availability.
-The prototype will aim to:
-1. Accept user preferences.
-2. Retrieve and rank suitable recipes.
-3. Apply hard dietary constraints.
-4. Calculate estimated emissions where sufficient data is available.
-5. Display a proposed seven-day menu.
-6. Allow users to replace meals and compare estimated totals.
-Automatic shopping, price optimisation and personalised medical nutrition advice are outside the initial scope.
-
-## 8. Evaluation Plan
-The system will be evaluated using a small, manually reviewed set of preference queries and relevant recipes.
-Planned evaluation activities include:
-- Comparing embedding-based retrieval with a keyword-based baseline.
-- Measuring precision at 5 (P@5).
-- Testing dietary constraints separately.
-- Manually reviewing ingredient mappings and footprint calculations.
-- Reporting recipe and ingredient data coverage, including missing estimates.
-A lower estimated footprint will not, by itself, be interpreted as proof of actual behavioural or environmental impact.
-
-## 9. Repository Structure
-```text
-weekly-meal-planner/
-├── README.md
-├── data/
-│   ├── README.md
-│   ├── recipes.csv
-│   └── impact_factors.csv
-├── src/
-│   ├── README.md
-│   ├── data_processing.py
-│   ├── recipe_matching.py
-│   ├── emissions.py
-│   └── main.py
-├── tests/
-│   └── README.md
-├── docs/
-│   ├── README.md
-│   ├── system_sketch.png
-│   └── development_log.md
-├── requirements.txt
-└── .gitignore
 ```
-This is the intended structure. Files will be added as the corresponding components are developed and validated.
+recipes (25, grams)  ──►  ingredient matching  ──►  CO₂e per recipe  ──►  weekly planner  ──►  swap + savings
+                          ingredient → Agribalyse      grams × kg CO₂e/kg     diet filter,          Streamlit app
+                          food (3 methods)                                    no repeated protein
+```
 
-## 10. Current Status
-The project concept, initial scope, proposed architecture and development plan are being defined.
-The immediate priorities are to establish the repository structure, curate an initial recipe dataset, select a suitable environmental impact-factor source and build a small working prototype.
-Implementation status and outstanding limitations will be updated as the project develops.
+| Part | File | Status |
+|---|---|---|
+| Recipes: 25 recipes, 112 ingredient rows in grams, 2 servings each | `data/recipes.csv`, `data/recipe_ingredients.csv` | Curated by the team |
+| Environmental data: Agribalyse 3.2 synthese (kg CO₂e per kg) | `data/agribalyse_synthese.csv` | Real data |
+| Ingredient matching (see below) | `src/co2e.py`, `src/matching.py`, `src/ai_matching.py` | 3 methods |
+| CO₂e calculation | `src/co2e.py` | Real |
+| Weekly planner: diet filter + no repeated main protein + lowest-CO₂e or variety goal | `src/planner.py` | Rule-based |
+| Interface | `src/app.py` | Streamlit |
 
-## 11. Main Technical Risk
-The main technical challenge is mapping ingredient names and recipe quantities to sufficiently consistent environmental impact factors.
-If reliable coverage is insufficient, the project will restrict the supported recipe set, flag missing data and clearly communicate the limitations of its estimates.
+### Where the AI is used: ingredient matching
 
-## 12. Team and Contributions
-Team members and responsibilities will be documented as tasks are assigned.
-Contributions will be tracked through the project board and repository history.
+Every recipe ingredient must be linked to the right Agribalyse food, otherwise its CO₂e is wrong.
+This is the riskiest step, so the AI is used here (see dev log 03).
+
+| Method | What it does | Test result (50 hand-labelled ingredients, EN/ES/CA) |
+|---|---|---|
+| `labels` | Team-verified mapping (`data/ingredient_labels.csv`) | Reference (ground truth) |
+| `rapidfuzz` | Most similar name, letter by letter (baseline) | **7/50** |
+| `ai` rev 1 | Multilingual sentence embeddings + FAISS | **11/50** |
+| `ai` rev 2 | `BAAI/bge-m3` + FAISS | **12/50** (meets the ≥12/50 decision rule) |
+
+12/50 beats the baseline but still means many wrong matches, so **the app uses the
+team-verified labels by default** and shows the automatic methods only for comparison.
+Details and error analysis: `docs/07_dev_log_ai_rev2_and_review_fixes.md`.
+
 ## How to run
 
 ```bash
 pip install -r requirements.txt
-python src/run_demo.py                                  # weekly plan + swap
+streamlit run src/app.py                                # the app (opens in the browser)
+
+python src/run_demo.py                                  # terminal demo: weekly plan + swap (backup for the demo)
 python src/run_demo.py --diet vegan --goal low_carbon   # diets: vegan, vegetarian, pescatarian, omnivore
-python src/evaluate_matching.py                         # matcher accuracy on the test set
-python tests/test_smoke.py                              # run before every merge
+python src/evaluate_matching.py                         # RapidFuzz accuracy on the test set
+python tests/test_smoke.py                              # run before every merge (also tests the app)
 ```
+
+Optional, AI matcher (large model, best in Google Colab):
+
+```bash
+pip install -r requirements-ai.txt
+python src/evaluate_matching.py --matcher ai
+python src/evaluate_matching.py --matcher ai --candidates strict --objective safe   # fewer confident errors
+```
+
+The AI option only appears in the app when these packages are installed.
+
+## Repository structure
+
+```text
+data/        recipes, Agribalyse, labelled ingredients, evaluation results (results_*.csv)
+docs/        development log (index: docs/development_log.md)
+notebooks/   01–03 data exploration/cleaning/recipes, 04–05 AI matcher experiments (Colab)
+src/         matching.py, ai_matching.py, co2e.py, planner.py, app.py, run_demo.py, evaluate_matching.py
+tests/       test_smoke.py
+```
+
+## Limitations
+
+- Estimates use one meal per day and the Agribalyse system boundary; they are estimates, not measurements.
+- Some ingredients have no exact Agribalyse equivalent (mushroom: no match; black bean: declared proxy).
+  Meals with an unmatched ingredient are marked as *incomplete* and excluded from savings comparisons.
+- Automatic matching (RapidFuzz and AI) makes confident mistakes; their CO₂e numbers are not verified.
+- A lower estimated footprint is not, by itself, proof of a real environmental impact.
+
+## Team
+
+Silvia, Laura, Carla and Martina. Contributions are tracked in the repository history and the dev log.

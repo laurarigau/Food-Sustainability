@@ -1,5 +1,7 @@
 # Streamlit Interface and User Experience — 13 November 2026
 
+> **Update (entry 07):** when run from a clean environment, the app failed on the first click (AI was the default method and `streamlit` was not in `requirements.txt`). Both are fixed, the savings logic was improved and the app is now covered by the smoke test. See [entry 07](07_dev_log_ai_rev2_and_review_fixes.md).
+
 ## Objective
 
 Build a user-facing interface for the weekly meal planner, connecting the existing recipe database, ingredient-matching system, CO₂e calculations and rule-based weekly planner. The goal is to make the project accessible to a household user without requiring them to run Python scripts manually.

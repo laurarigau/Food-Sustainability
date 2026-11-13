@@ -10,6 +10,14 @@ Method (same for every matcher, so the comparison is fair):
   1. The "uncertain" threshold is chosen on the TUNE split only.
   2. Accuracy is reported on the TEST split, which is never used to choose anything.
 
+Objective used to choose the threshold on TUNE (--objective):
+  - "accuracy" (default, the rule used in dev logs 05 and 04): maximise correct answers.
+  - "safe": maximise correct answers minus `penalty` x confident errors. A confident error
+    (a wrong food WITH a CO2e number) is worse than saying "uncertain" (no number), so this
+    objective prefers a higher threshold. Decide the objective BEFORE looking at TEST.
+
+    python src/evaluate_matching.py --matcher ai --candidates strict --objective safe
+
 A prediction is correct when:
   - the label has an Agribalyse code and the matcher returns that code (not uncertain), or
   - the label is "NO MATCH" and the matcher says "uncertain".
@@ -45,37 +53,52 @@ def apply_threshold(pred: pd.DataFrame, threshold: float) -> pd.DataFrame:
     no_match = out["agribalyse_code"].isna() | (out["agribalyse_code"].astype(str).str.strip() == "")
     same = out["pred_code"] == out["agribalyse_code"].astype(str).str.strip()
     out["correct"] = np.where(no_match, out["uncertain"], (~out["uncertain"]) & same)
+    # Wrong food AND a CO2e number shown: the dangerous error for the user
+    out["confident_error"] = (~out["correct"]) & (~out["uncertain"])
     return out
 
 
-def choose_threshold(pred_tune: pd.DataFrame, grid) -> tuple[float, float]:
-    best_t, best_acc = None, -1.0
-    for t in grid:
-        acc = apply_threshold(pred_tune, t)["correct"].mean()
-        if acc > best_acc:
-            best_t, best_acc = float(t), float(acc)
-    return best_t, best_acc
+def objective_value(scored: pd.DataFrame, objective: str = "accuracy", penalty: float = 1.0) -> float:
+    if objective == "accuracy":
+        return float(scored["correct"].mean())
+    if objective == "safe":
+        return float(scored["correct"].mean() - penalty * scored["confident_error"].mean())
+    raise ValueError(f"Unknown objective: {objective}")
 
-def evaluate_tune(matcher, grid, labels=None):
+
+def choose_threshold(pred_tune: pd.DataFrame, grid, objective: str = "accuracy",
+                     penalty: float = 1.0) -> tuple[float, float]:
+    """Best threshold on TUNE for the objective. Returns (threshold, tune accuracy at that threshold)."""
+    best_t, best_val = None, -np.inf
+    for t in grid:
+        val = objective_value(apply_threshold(pred_tune, t), objective, penalty)
+        if val > best_val:
+            best_t, best_val = float(t), val
+    return best_t, float(apply_threshold(pred_tune, best_t)["correct"].mean())
+
+def evaluate_tune(matcher, grid, labels=None, objective: str = "accuracy", penalty: float = 1.0):
     """Evaluate only on TUNE, without accessing TEST."""
     labels = load_labels() if labels is None else labels
     tune_labels = labels[labels["split"] == "tune"]
 
     pred_tune = predict(matcher, tune_labels)
-    threshold, tune_acc = choose_threshold(pred_tune, grid)
+    threshold, tune_acc = choose_threshold(pred_tune, grid, objective, penalty)
 
     return {
         "threshold": threshold,
         "tune_acc": tune_acc
     }
 
-def evaluate(matcher, grid, labels: pd.DataFrame | None = None) -> dict:
+def evaluate(matcher, grid, labels: pd.DataFrame | None = None, objective: str = "accuracy",
+             penalty: float = 1.0) -> dict:
     labels = load_labels() if labels is None else labels
     pred = predict(matcher, labels)
-    t, tune_acc = choose_threshold(pred[pred.split == "tune"], grid)
+    t, tune_acc = choose_threshold(pred[pred.split == "tune"], grid, objective, penalty)
     test = apply_threshold(pred[pred.split == "test"], t)
     return {"threshold": t, "tune_acc": tune_acc, "test": test,
-            "test_correct": int(test.correct.sum()), "test_n": len(test)}
+            "test_correct": int(test.correct.sum()), "test_n": len(test),
+            "test_uncertain": int(test.uncertain.sum()),
+            "test_confident_errors": int(test.confident_error.sum())}
 
 
 def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None):
@@ -95,22 +118,33 @@ def main():
     ap.add_argument("--model", default=None, help="sentence-transformers model name (AI matcher only)")
     ap.add_argument("--candidates", default=None, choices=["all", "light", "strict"])
     ap.add_argument("--passage", default=None, choices=["en", "en_fr"])
+    ap.add_argument("--objective", default="accuracy", choices=["accuracy", "safe"])
+    ap.add_argument("--penalty", type=float, default=1.0, help="weight of a confident error (objective 'safe')")
     ap.add_argument("--details", action="store_true")
     args = ap.parse_args()
 
     matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage)
-    r = evaluate(matcher, grid)
+    r = evaluate(matcher, grid, objective=args.objective, penalty=args.penalty)
     label = args.matcher if args.matcher == "rapidfuzz" else f"ai ({matcher.model_name}, candidates={matcher.candidates}, passage={matcher.passage})"
     print(f"Matcher: {label}")
+    print(f"Objective: {args.objective}" + (f" (penalty {args.penalty})" if args.objective == "safe" else ""))
     print(f"Threshold chosen on TUNE: {r['threshold']}  (tune accuracy {r['tune_acc']:.0%})")
     print(f"\nTEST: {r['test_correct']}/{r['test_n']} correct ({r['test_correct'] / r['test_n']:.0%})")
+    print(f"      {r['test_uncertain']} uncertain (no number), "
+          f"{r['test_confident_errors']} confident errors (wrong food with a CO2e number)")
     print(r["test"].groupby("language")["correct"].agg(["sum", "count"]).rename(columns={"sum": "correct", "count": "n"}))
 
     if args.details:
         pd.set_option("display.width", 200, "display.max_colwidth", 45)
         print(r["test"][["ingredient_text", "agribalyse_name", "pred_name", "score", "uncertain", "correct"]].to_string(index=False))
 
-    out_file = DATA_DIR / f"results_{args.matcher}_test.csv"
+    # One file per configuration, so a new run never overwrites an earlier result
+    tag = args.matcher
+    if args.matcher == "ai":
+        tag += f"_{matcher.model_name.split('/')[-1]}_{matcher.candidates}_{matcher.passage}"
+    if args.objective != "accuracy":
+        tag += f"_{args.objective}"
+    out_file = DATA_DIR / f"results_{tag}_test.csv"
     r["test"].to_csv(out_file, index=False)
     print(f"\nSaved row-by-row results to data/{out_file.name}")
 
