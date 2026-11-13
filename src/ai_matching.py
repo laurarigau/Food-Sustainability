@@ -22,8 +22,8 @@ import pandas as pd
 
 from matching import load_agribalyse
 
-DEFAULT_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"  # best on tune in revision 1
-DEFAULT_THRESHOLD = 0.70
+DEFAULT_MODEL = "BAAI/bge-m3"
+DEFAULT_THRESHOLD = 0.60
 DEFAULT_CANDIDATES = "all"
 DEFAULT_PASSAGE = "en"
 
