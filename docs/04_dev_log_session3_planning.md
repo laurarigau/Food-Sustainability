@@ -2,7 +2,7 @@
 
 **Objective:** Identify bottlenecks and dependencies, define the scope for 2 December, assess risks, and establish milestones and team working rules.
 
-**Documentation note (updated 13 November):** This log combines the confirmed implementation progress reported by the team with proposed planning decisions. The original classroom photos, token allocations, red-team feedback, and external smoke-test observations were not available when this update was written. Proposed items are explicitly labelled and should not be interpreted as activities or results verified in class.
+**Documentation note (updated 13 November):** This log combines the confirmed implementation progress reported by us with proposed planning decisions. The original classroom photos, token allocations, red-team feedback, and external smoke-test observations were not available when this update was written. Proposed items are explicitly labelled and should not be interpreted as activities or results verified in class.
 
 ---
 
