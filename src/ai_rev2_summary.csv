@@ -1,0 +1,2 @@
+model,candidates,passage,threshold,tune_acc,test_correct,rapidfuzz_test_correct,test_n
+BAAI/bge-m3,all,en,0.6,0.28,12,7,50
