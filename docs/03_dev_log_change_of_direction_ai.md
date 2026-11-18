@@ -16,7 +16,7 @@
 - Multilingual embeddings can match ingredients written in Spanish or Catalan, which string matching cannot.
 
 **Decision rule (continue / revise / stop):**
-- Continue: the AI model gets at least 10 percentage points more correct matches than RapidFuzz on the 50 test ingredients by **[DATE, e.g. 24 Nov 2026]**.
+- Continue: the AI model gets at least 10 percentage points more correct matches than RapidFuzz on the 50 test ingredients.
 - Revise: it only beats the baseline for some ingredient types → use AI for those, RapidFuzz for the rest, and declare it.
 - Stop: not met by the date → the demo uses RapidFuzz, and we declare it in the log and in the presentation.
 - When the AI is not confident enough (threshold to be chosen on the 50 tuning ingredients), the app shows "uncertain" instead of a number.
