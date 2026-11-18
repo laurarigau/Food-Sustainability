@@ -12,6 +12,7 @@
 | 05 | 12 Nov 2026 | [Recipes, Ingredient Labels and RapidFuzz Baseline](05_dev_log_recipes_labels_baseline.md) |
 | 06 | 13 Nov 2026 | [Streamlit Interface and User Experience](06_dev_log_streamlit_interface.md)       |
 | 07 | 13 Nov 2026 | [AI Matcher Revision 2 and Review Fixes](07_dev_log_ai_rev2_and_review_fixes.md)   |
+| 08 | 18 Nov 2026 | [Clean-Environment Check and Presentation](08_dev_log_clean_check_and_presentation.md) |
 
 ## Current Status (updated 13 Nov 2026)
 
