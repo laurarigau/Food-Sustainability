@@ -1,4 +1,4 @@
-### Recipe Dataset and First End-to-End Skeleton — [DATE, between 28 Oct and 11 Nov 2026]
+### Recipe Dataset and First End-to-End Skeleton (28 Oct – 10 Nov 2026)
 
 **Objective:** Create a first curated recipe dataset and get the full pipeline running from start to end, even if some parts are still stubs or done by hand.
 
@@ -42,4 +42,4 @@
 - Build the AI model (multilingual sentence-transformers + FAISS) with an "uncertain" output when confidence is low.
 - Add simple planner rules: respect the diet, do not repeat the main protein.
 
-**Evidence:** `notebooks/03_recipe_preparation.ipynb`, "First Steps", "Real vs Fake", "Our stack" documents. [ADD commit links]
+**Evidence:** `notebooks/03_recipe_preparation.ipynb`, "First Steps", "Real vs Fake", "Our stack" documents. Commits (28 Oct 2026): [84d3559](https://github.com/laurarigau/Food-Sustainability/commit/84d3559b9c7c7bd8d70fbb5120cb4b9b3f1045c0), [5dae98e](https://github.com/laurarigau/Food-Sustainability/commit/5dae98e4e3f03235b3f65f7bbd03f42527a50e94), [b167203](https://github.com/laurarigau/Food-Sustainability/commit/b167203c62e768adaeff9bb1a828b4678286c9ce), [e2be00b](https://github.com/laurarigau/Food-Sustainability/commit/e2be00ba46bb7535fcf21135b12dd51dc7b87577)
