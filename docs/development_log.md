@@ -52,7 +52,8 @@ Build a working pipeline using a small dataset before expanding the recipe colle
 
 ## Open Questions
 
-- ~~Which impact-factor source and system boundary will we use?~~ Agribalyse (kg CO2e per kg), joined to Open Food Facts. [ADD system boundary if decided]
+- ~~Which impact-factor source and system boundary will we use?~~ Agribalyse (kg CO2e per kg), joined to Open Food Facts.
+  System boundary: Agribalyse total life-cycle value per kg of food ("Changement climatique", kg CO₂e/kg), from farm to consumption, used as published. We do not adjust for country of origin, season or household food waste.
 - How will we handle missing ingredient data? *(Partly answered: if the matcher is not confident enough, the app shows "uncertain" instead of a number.)*
 - ~~Which embedding model will we evaluate?~~ Several multilingual sentence-transformers models with FAISS search; best: `BAAI/bge-m3` (entry 07).
 - How will we divide responsibilities across the team? *(See milestones and owners in entry 04.)*
