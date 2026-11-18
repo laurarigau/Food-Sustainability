@@ -1,5 +1,4 @@
-### Change of Direction: Where the AI Is Used — [DATE, same period as entry 02]
-
+### Change of Direction: Where the AI Is Used, Early November 2026 (Session 2, Real vs Fake exercise)
 **Objective:** Record why the AI component moved from recipe recommendation to ingredient matching.
 
 **What we planned before (Final Idea):**
