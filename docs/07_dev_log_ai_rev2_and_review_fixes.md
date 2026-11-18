@@ -63,8 +63,8 @@ are now tested automatically. All tests pass from a clean environment.
 
 - [ ] Run in Colab, decided before looking at TEST: `python src/evaluate_matching.py --matcher ai --candidates strict --objective safe` and log the result (correct / uncertain / confident errors).
 - [ ] Save notebooks 04 and 05 **with outputs** as evidence.
-- [ ] External smoke test (another team, README only) — see log 04, work 7.
-- [ ] Optional: deploy the app (Streamlit Community Cloud or Hugging Face Spaces).
+- [ ] External smoke test (another team, README only).
+- [ ] Deploy the app (Streamlit Community Cloud or Hugging Face Spaces).
 
 ## Evidence
 
