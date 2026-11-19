@@ -5,7 +5,8 @@ Usage:
     python src/evaluate_matching.py --matcher ai          # AI matcher (default model)
     python src/evaluate_matching.py --matcher ai --model intfloat/multilingual-e5-small
     python src/evaluate_matching.py --details             # also print every TEST row
-    python src/evaluate_matching.py --matcher llm         # LLM matcher (needs ANTHROPIC_API_KEY)
+    python src/evaluate_matching.py --matcher llm                          # open LLM, free (GPU: use Colab, notebook 07)
+    python src/evaluate_matching.py --matcher llm --provider anthropic     # Claude API (needs ANTHROPIC_API_KEY)
 
 Method (same for every matcher, so the comparison is fair):
   1. The "uncertain" threshold is chosen on the TUNE split only.
@@ -120,7 +121,8 @@ def evaluate(matcher, grid, labels: pd.DataFrame | None = None, objective: str =
             "test_co2e_ok": int(test.co2e_ok.sum())}
 
 
-def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None):
+def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None,
+                  provider: str = "hf"):
     if name == "rapidfuzz":
         return RapidFuzzMatcher(threshold=0), np.arange(0, 101, 5)
     if name == "ai":
@@ -130,7 +132,7 @@ def build_matcher(name: str, model: str | None = None, candidates: str | None = 
         return m, np.round(np.arange(0, 1.0001, 0.05), 2)
     if name == "llm":
         from llm_matching import LLMMatcher
-        m = LLMMatcher(model=model, threshold=0.0) if model else LLMMatcher(threshold=0.0)
+        m = LLMMatcher(model=model, provider=provider, threshold=0.0)
         return m, [0.0, 0.3, 0.6, 1.0]          # scores are confidence levels: low 0.3, medium 0.6, high 1.0
     raise ValueError(name)
 
@@ -143,10 +145,11 @@ def main():
     ap.add_argument("--passage", default=None, choices=["en", "en_fr"])
     ap.add_argument("--objective", default="accuracy", choices=["accuracy", "safe"])
     ap.add_argument("--penalty", type=float, default=1.0, help="weight of a confident error (objective 'safe')")
+    ap.add_argument("--provider", default="hf", choices=["hf", "anthropic"], help="LLM matcher only")
     ap.add_argument("--details", action="store_true")
     args = ap.parse_args()
 
-    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage)
+    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage, args.provider)
     r = evaluate(matcher, grid, objective=args.objective, penalty=args.penalty)
     if args.matcher == "rapidfuzz":
         label = "rapidfuzz"
@@ -173,7 +176,7 @@ def main():
     if args.matcher == "ai":
         tag += f"_{matcher.model_name.split('/')[-1]}_{matcher.candidates}_{matcher.passage}"
     if args.matcher == "llm":
-        tag += f"_{matcher.model_name}"
+        tag += f"_{matcher.model_name.split('/')[-1]}"
     if args.objective != "accuracy":
         tag += f"_{args.objective}"
     out_file = DATA_DIR / f"results_{tag}_test.csv"

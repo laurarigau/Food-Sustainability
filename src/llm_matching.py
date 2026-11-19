@@ -22,8 +22,11 @@ form). No TEST label is shown to it.
 Every LLM answer is stored in data/llm_cache.json, so a run can be repeated for free and the
 results are reproducible. Delete the file (or use cache=False) to ask the LLM again.
 
-Needs:  pip install anthropic   and   export ANTHROPIC_API_KEY=...
-Another provider: pass `complete=my_function`, where my_function(system, user) -> str.
+Two providers (choose with provider=...):
+  - "hf"        : free, open model run locally with transformers (default Qwen/Qwen2.5-7B-Instruct,
+                  4-bit). Run it in Google Colab with a GPU: notebooks/07_llm_matching_colab.ipynb
+  - "anthropic" : Claude API (pip install anthropic; export ANTHROPIC_API_KEY=...)
+Any other provider: pass `complete=my_function`, where my_function(system, user) -> str.
 """
 import json
 import os
@@ -35,7 +38,8 @@ from rapidfuzz import fuzz, process
 
 from matching import DATA_DIR, load_agribalyse
 
-DEFAULT_MODEL = os.environ.get("LLM_MATCHER_MODEL", "claude-haiku-5-5")
+DEFAULT_PROVIDER = "hf"
+DEFAULT_MODELS = {"hf": "Qwen/Qwen2.5-7B-Instruct", "anthropic": "claude-haiku-5-5"}
 DEFAULT_THRESHOLD = 0.6          # placeholder; evaluate_matching.py chooses it on TUNE
 DEFAULT_K = 20                   # candidates shown to the LLM
 CACHE_FILE = DATA_DIR / "llm_cache.json"
@@ -72,7 +76,39 @@ Labelling rules of our team:
 Return ONLY a JSON object: {"code": "<candidate code or NONE>", "confidence": "high|medium|low", "reason": "<max 12 words>"}"""
 
 
-def anthropic_complete(model: str = DEFAULT_MODEL):
+def hf_complete(model_name: str = DEFAULT_MODELS["hf"], load_in_4bit: bool = True):
+    """Return complete(system, user) -> str with an open model (greedy decoding = reproducible).
+
+    On a GPU the model is loaded in 4-bit (fits the free Colab T4). Needs:
+        pip install transformers accelerate bitsandbytes
+    """
+    import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    tok = AutoTokenizer.from_pretrained(model_name)
+    kwargs = {"device_map": "auto"}
+    if load_in_4bit and torch.cuda.is_available():
+        from transformers import BitsAndBytesConfig
+        kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.float16)
+    else:
+        kwargs["torch_dtype"] = "auto"
+    model = AutoModelForCausalLM.from_pretrained(model_name, **kwargs)
+    model.eval()
+
+    def complete(system: str, user: str) -> str:
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        text = tok.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        inputs = tok(text, return_tensors="pt").to(model.device)
+        with torch.no_grad():
+            out = model.generate(**inputs, max_new_tokens=150, do_sample=False,
+                                 pad_token_id=tok.pad_token_id or tok.eos_token_id)
+        return tok.decode(out[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+
+    return complete
+
+
+def anthropic_complete(model: str = DEFAULT_MODELS["anthropic"]):
     """Return complete(system, user) -> str using the Anthropic API (temperature 0)."""
     import anthropic
 
@@ -98,7 +134,8 @@ def parse_json(text: str) -> dict:
 
 
 class LLMMatcher:
-    def __init__(self, agribalyse: pd.DataFrame | None = None, model: str = DEFAULT_MODEL,
+    def __init__(self, agribalyse: pd.DataFrame | None = None, model: str | None = None,
+                 provider: str = DEFAULT_PROVIDER,
                  threshold: float = DEFAULT_THRESHOLD, k: int = DEFAULT_K, complete=None,
                  cache: bool = True, cache_file: Path = CACHE_FILE):
         agb = agribalyse if agribalyse is not None else load_agribalyse()
@@ -107,7 +144,9 @@ class LLMMatcher:
         self.by_code = self.agb.set_index("agribalyse_code")
         self.names_en = self.agb["agribalyse_name"].str.lower().tolist()
         self.names_fr = self.agb["name_fr"].fillna("").str.lower().tolist()
-        self.model_name, self.threshold, self.k = model, threshold, k
+        self.provider = provider
+        self.model_name = model or DEFAULT_MODELS[provider]
+        self.threshold, self.k = threshold, k
         self._complete = complete
         self.cache_file, self.use_cache = cache_file, cache
         self.cache = json.loads(cache_file.read_text()) if cache and cache_file.exists() else {}
@@ -117,7 +156,8 @@ class LLMMatcher:
         key = f"{self.model_name}||{system[:40]}||{user}"
         if key not in self.cache:
             if self._complete is None:
-                self._complete = anthropic_complete(self.model_name)
+                make = hf_complete if self.provider == "hf" else anthropic_complete
+                self._complete = make(self.model_name)
             self.cache[key] = self._complete(system, user)
             if self.use_cache:
                 self.cache_file.write_text(json.dumps(self.cache, ensure_ascii=False, indent=1))

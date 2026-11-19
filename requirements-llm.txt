@@ -1,1 +1,7 @@
+# LLM matcher (src/llm_matching.py)
+# Free, open model (run in Google Colab with a GPU, notebook 07):
+transformers>=4.45
+accelerate
+bitsandbytes
+# Optional, Claude API instead (--provider anthropic):
 anthropic>=0.40
