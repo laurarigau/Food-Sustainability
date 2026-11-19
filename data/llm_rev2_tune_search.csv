@@ -1,0 +1,5 @@
+model,verify,threshold,tune_correct,tune_co2e_ok,tune_confident_errors,n,size
+Qwen/Qwen2.5-7B-Instruct,False,0.3,33,43,13,50,7
+Qwen/Qwen2.5-7B-Instruct,True,0.3,33,42,12,50,7
+Qwen/Qwen2.5-14B-Instruct,False,1.0,34,43,12,50,14
+Qwen/Qwen2.5-14B-Instruct,True,0.3,34,40,8,50,14
