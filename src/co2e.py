@@ -5,7 +5,8 @@ Formula: kg CO2e = (grams / 1000) x kg CO2e per kg (Agribalyse "Changement clima
 Which matcher links ingredients to Agribalyse is a parameter:
   - "labels"    : the team-verified mapping in data/ingredient_labels.csv (FAKED: manual, declared)
   - "rapidfuzz" : the RapidFuzz baseline (real, but 7/50 on test)
-  - later "ai"  : sentence-transformers + FAISS (same output format)
+  - "ai"        : sentence-transformers + FAISS (same output format)
+  - "llm"       : retrieve candidates + an LLM chooses (llm_matching.py, needs an API key)
 """
 import pandas as pd
 
@@ -45,6 +46,9 @@ def get_matcher(name: str = "labels"):
     if name == "ai":
         from ai_matching import EmbeddingMatcher
         return EmbeddingMatcher()
+    if name == "llm":
+        from llm_matching import LLMMatcher
+        return LLMMatcher()
     raise ValueError(f"Unknown matcher: {name}")
 
 

@@ -33,6 +33,7 @@ This is the riskiest step, so the AI is used here (see dev log 03).
 | `rapidfuzz` | Most similar name, letter by letter (baseline) | **7/50** |
 | `ai` rev 1 | Multilingual sentence embeddings + FAISS | **11/50** |
 | `ai` rev 2 | `BAAI/bge-m3` + FAISS | **12/50** (meets the ≥12/50 decision rule) |
+| `llm` (branch `llm-matcher`) | LLM translates → RapidFuzz retrieves candidates (EN + FR names) → LLM chooses one or NONE | *pending: run with an API key* |
 
 12/50 beats the baseline but still means many wrong matches, so **the app uses the
 team-verified labels by default** and shows the automatic methods only for comparison.
@@ -59,6 +60,18 @@ python src/evaluate_matching.py --matcher ai --candidates strict --objective saf
 ```
 
 The AI option only appears in the app when these packages are installed.
+
+Optional, LLM matcher (no big model; needs an Anthropic API key):
+
+```bash
+pip install -r requirements-llm.txt
+export ANTHROPIC_API_KEY=...                        # Colab: os.environ["ANTHROPIC_API_KEY"] = ...
+python src/evaluate_matching.py --matcher llm       # ~200 short calls; answers cached in data/llm_cache.json
+```
+
+Every evaluation now also reports **CO₂e OK**: right food, or a food whose kg CO₂e/kg is within ±25%
+of the labelled one (e.g. *Green lentil, cooked* vs *Lentil, cooked*). With this metric RapidFuzz is 10/50
+and AI rev 2 is 19/50.
 
 ## Repository structure
 
