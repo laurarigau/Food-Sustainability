@@ -65,7 +65,6 @@ are now tested automatically. All tests pass from a clean environment.
 - [ ] Save notebooks 04 and 05 **with outputs** as evidence.
 - [ ] External smoke test (another team, README only).
 - [ ] Deploy the app (Streamlit Community Cloud or Hugging Face Spaces).
-- [ ] 18 Nov 2026 | [Clean-Environment Check and Presentation]
 ## Evidence
 
 `src/app.py`, `src/planner.py`, `src/matching.py`, `src/evaluate_matching.py`, `src/run_demo.py`,
