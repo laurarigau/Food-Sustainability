@@ -5,6 +5,8 @@ Usage:
     python src/evaluate_matching.py --matcher ai          # AI matcher (default model)
     python src/evaluate_matching.py --matcher ai --model intfloat/multilingual-e5-small
     python src/evaluate_matching.py --details             # also print every TEST row
+    python src/evaluate_matching.py --matcher llm                          # open LLM, free (GPU: use Colab, notebook 07)
+    python src/evaluate_matching.py --matcher llm --provider anthropic     # Claude API (needs ANTHROPIC_API_KEY)
 
 Method (same for every matcher, so the comparison is fair):
   1. The "uncertain" threshold is chosen on the TUNE split only.
@@ -21,13 +23,16 @@ Objective used to choose the threshold on TUNE (--objective):
 A prediction is correct when:
   - the label has an Agribalyse code and the matcher returns that code (not uncertain), or
   - the label is "NO MATCH" and the matcher says "uncertain".
+
+Second metric, "CO2e OK" (what matters for the user): correct, OR a different Agribalyse food whose
+CO2e per kg is within +-25% of the labelled one (e.g. "Green lentil, cooked" vs "Lentil, cooked").
 """
 import argparse
 
 import numpy as np
 import pandas as pd
 
-from matching import DATA_DIR, RapidFuzzMatcher
+from matching import DATA_DIR, RapidFuzzMatcher, load_agribalyse
 
 LABELS_FILE = DATA_DIR / "ingredient_labels.csv"
 
@@ -55,7 +60,21 @@ def apply_threshold(pred: pd.DataFrame, threshold: float) -> pd.DataFrame:
     out["correct"] = np.where(no_match, out["uncertain"], (~out["uncertain"]) & same)
     # Wrong food AND a CO2e number shown: the dangerous error for the user
     out["confident_error"] = (~out["correct"]) & (~out["uncertain"])
+    out["co2e_ok"] = out["correct"] | (~out["uncertain"] & ~no_match & _within(out, 0.25))
     return out
+
+
+_CO2E: dict = {}
+
+
+def _within(out: pd.DataFrame, tol: float) -> pd.Series:
+    """True when the predicted food's CO2e/kg is within +-tol of the labelled food's."""
+    if not _CO2E:
+        agb = load_agribalyse()
+        _CO2E.update(zip(agb["agribalyse_code"], pd.to_numeric(agb["co2e_per_kg"], errors="coerce")))
+    true = out["agribalyse_code"].astype(str).str.strip().map(_CO2E)
+    pred = out["pred_code"].map(_CO2E)
+    return ((pred - true).abs() / true <= tol).fillna(False)
 
 
 def objective_value(scored: pd.DataFrame, objective: str = "accuracy", penalty: float = 1.0) -> float:
@@ -98,10 +117,12 @@ def evaluate(matcher, grid, labels: pd.DataFrame | None = None, objective: str =
     return {"threshold": t, "tune_acc": tune_acc, "test": test,
             "test_correct": int(test.correct.sum()), "test_n": len(test),
             "test_uncertain": int(test.uncertain.sum()),
-            "test_confident_errors": int(test.confident_error.sum())}
+            "test_confident_errors": int(test.confident_error.sum()),
+            "test_co2e_ok": int(test.co2e_ok.sum())}
 
 
-def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None):
+def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None,
+                  provider: str = "hf"):
     if name == "rapidfuzz":
         return RapidFuzzMatcher(threshold=0), np.arange(0, 101, 5)
     if name == "ai":
@@ -109,30 +130,42 @@ def build_matcher(name: str, model: str | None = None, candidates: str | None = 
         m = EmbeddingMatcher(model_name=model or DEFAULT_MODEL, threshold=0.0,
                              candidates=candidates or DEFAULT_CANDIDATES, passage=passage or DEFAULT_PASSAGE)
         return m, np.round(np.arange(0, 1.0001, 0.05), 2)
+    if name == "llm":
+        from llm_matching import LLMMatcher
+        m = LLMMatcher(model=model, provider=provider, threshold=0.0)
+        return m, [0.0, 0.3, 0.6, 1.0]          # scores are confidence levels: low 0.3, medium 0.6, high 1.0
     raise ValueError(name)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--matcher", default="rapidfuzz", choices=["rapidfuzz", "ai"])
-    ap.add_argument("--model", default=None, help="sentence-transformers model name (AI matcher only)")
+    ap.add_argument("--matcher", default="rapidfuzz", choices=["rapidfuzz", "ai", "llm"])
+    ap.add_argument("--model", default=None, help="sentence-transformers model (ai) or LLM model (llm)")
     ap.add_argument("--candidates", default=None, choices=["all", "light", "strict"])
     ap.add_argument("--passage", default=None, choices=["en", "en_fr"])
     ap.add_argument("--objective", default="accuracy", choices=["accuracy", "safe"])
     ap.add_argument("--penalty", type=float, default=1.0, help="weight of a confident error (objective 'safe')")
+    ap.add_argument("--provider", default="hf", choices=["hf", "anthropic"], help="LLM matcher only")
     ap.add_argument("--details", action="store_true")
     args = ap.parse_args()
 
-    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage)
+    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage, args.provider)
     r = evaluate(matcher, grid, objective=args.objective, penalty=args.penalty)
-    label = args.matcher if args.matcher == "rapidfuzz" else f"ai ({matcher.model_name}, candidates={matcher.candidates}, passage={matcher.passage})"
+    if args.matcher == "rapidfuzz":
+        label = "rapidfuzz"
+    elif args.matcher == "llm":
+        label = f"llm ({matcher.model_name}, retrieve top-{matcher.k} + choose)"
+    else:
+        label = f"ai ({matcher.model_name}, candidates={matcher.candidates}, passage={matcher.passage})"
     print(f"Matcher: {label}")
     print(f"Objective: {args.objective}" + (f" (penalty {args.penalty})" if args.objective == "safe" else ""))
     print(f"Threshold chosen on TUNE: {r['threshold']}  (tune accuracy {r['tune_acc']:.0%})")
     print(f"\nTEST: {r['test_correct']}/{r['test_n']} correct ({r['test_correct'] / r['test_n']:.0%})")
     print(f"      {r['test_uncertain']} uncertain (no number), "
           f"{r['test_confident_errors']} confident errors (wrong food with a CO2e number)")
-    print(r["test"].groupby("language")["correct"].agg(["sum", "count"]).rename(columns={"sum": "correct", "count": "n"}))
+    print(f"      CO2e OK (right food, or CO2e within +-25%): {r['test_co2e_ok']}/{r['test_n']}")
+    print(r["test"].groupby("language")[["correct", "co2e_ok"]].sum().join(
+        r["test"].groupby("language").size().rename("n")))
 
     if args.details:
         pd.set_option("display.width", 200, "display.max_colwidth", 45)
@@ -142,6 +175,8 @@ def main():
     tag = args.matcher
     if args.matcher == "ai":
         tag += f"_{matcher.model_name.split('/')[-1]}_{matcher.candidates}_{matcher.passage}"
+    if args.matcher == "llm":
+        tag += f"_{matcher.model_name.split('/')[-1]}"
     if args.objective != "accuracy":
         tag += f"_{args.objective}"
     out_file = DATA_DIR / f"results_{tag}_test.csv"

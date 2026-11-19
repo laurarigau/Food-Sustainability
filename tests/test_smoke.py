@@ -67,9 +67,29 @@ def test_streamlit_app_runs():
     assert not at.exception and not at.error
 
 
+def test_llm_matcher_format_without_api():
+    """LLM matcher with a fake LLM (no API key needed): same output format, NONE -> uncertain."""
+    import json
+    from llm_matching import LLMMatcher
+
+    def fake(system, user):
+        if "Return ONLY a JSON object:\n{\"english\"" in system:
+            return json.dumps({"english": "hake, raw", "synonyms": [], "french": "merlu, cru"})
+        code = "26044" if "26044 |" in user else "NONE"
+        return json.dumps({"code": code, "confidence": "high", "reason": "same food"})
+
+    m = LLMMatcher(complete=fake, cache=False)
+    r = m.match("merluza")
+    assert r["agribalyse_code"] == "26044" and not r["uncertain"] and r["co2e_per_kg"] > 0
+    assert set(r) >= {"ingredient", "agribalyse_code", "agribalyse_name", "co2e_per_kg", "score", "uncertain"}
+    none = LLMMatcher(complete=lambda s, u: '{"code": "NONE"}', cache=False).match("xampinyons")
+    assert none["uncertain"] and none["co2e_per_kg"] is None
+
+
 if __name__ == "__main__":
     test_every_diet_gets_a_valid_week()
     test_swap_keeps_the_rules()
     test_swap_savings_only_counts_changed_meals()
     test_streamlit_app_runs()
+    test_llm_matcher_format_without_api()
     print("Smoke test passed")

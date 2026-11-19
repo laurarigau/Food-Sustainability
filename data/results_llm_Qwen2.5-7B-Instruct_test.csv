@@ -1,0 +1,51 @@
+label_id,ingredient_text,language,split,agribalyse_code,agribalyse_name,pred_code,pred_name,score,uncertain,correct,confident_error,co2e_ok
+L002,beef,en,test,6254,"Beef, minced steak, 15% fat, raw",6201,"Beef, steak or beef steak, raw",1.0,False,False,True,True
+L004,black bean,en,test,20511,"Haricot bean, canned, drained",20063,"Butter bean or yellow bean, canned, drained",1.0,False,False,True,False
+L006,burger bun,en,test,7259,"Rolls for hamburger/hotdog (buns), prepacked",7262,"Rolls for hamburger/hotdog (buns), wholemeal, prepacked",1.0,False,False,True,False
+L007,butter,en,test,16400,"Butter, 82% fat, unsalted",None,,0.0,True,False,False,False
+L010,celery,en,test,20023,"Celery stalk, raw",20023,"Celery stalk, raw",1.0,False,True,False,True
+L011,cheddar,en,test,12726,"Cheddar cheese, from cow's milk",12726,"Cheddar cheese, from cow's milk",1.0,False,True,False,True
+L013,chickpea,en,test,20532,"Chick pea, canned, drained",20532,"Chick pea, canned, drained",1.0,False,True,False,True
+L014,chorizo,en,test,30315,"Spicy pork sausage with red pepper, no precision",30315,"Spicy pork sausage with red pepper, no precision",1.0,False,True,False,True
+L015,coconut milk,en,test,18041,Coconut milk or coconut cream,18041,Coconut milk or coconut cream,1.0,False,True,False,True
+L017,egg,en,test,22000,"Egg, raw",22000,"Egg, raw",1.0,False,True,False,True
+L018,garlic,en,test,11000,"Garlic, fresh",11000,"Garlic, fresh",1.0,False,True,False,True
+L022,lamb,en,test,21504,"Lamb, shoulder, raw",21502,"Lamb, leg, raw",1.0,False,False,True,False
+L023,lemon,en,test,13009,"Lemon, pulp, raw",2028,"Lemon juice, pure juice",1.0,False,False,True,True
+L024,lentil,en,test,20505,"Lentil, cooked",20504,"Lentil, dried",1.0,False,False,True,True
+L025,lettuce,en,test,20031,"Lettuce, raw",20031,"Lettuce, raw",1.0,False,True,False,True
+L026,mushroom,en,test,,NO MATCH,20105,"Morel, raw",1.0,False,False,True,False
+L028,olive oil,en,test,17270,"Olive oil, extra virgin",17270,"Olive oil, extra virgin",1.0,False,True,False,True
+L034,potato,en,test,4008,"Potato, peeled, raw",4008,"Potato, peeled, raw",1.0,False,True,False,True
+L038,soy sauce,en,test,11104,"Soy sauce, prepacked",11104,"Soy sauce, prepacked",1.0,False,True,False,True
+L042,tofu,en,test,20904,"Tofu, plain",20904,"Tofu, plain",1.0,False,True,False,True
+L043,tomato,en,test,20047_1,"Tomato, raw",20047_1,"Tomato, raw",1.0,False,True,False,True
+L047,white bean,en,test,20511,"Haricot bean, canned, drained",20511,"Haricot bean, canned, drained",1.0,False,True,False,True
+L048,zucchini,en,test,20020,"Courgette or zucchini, pulp and peel, raw",20020,"Courgette or zucchini, pulp and peel, raw",1.0,False,True,False,True
+L050,tomàquet,ca,test,20047_1,"Tomato, raw",20047_1,"Tomato, raw",1.0,False,True,False,True
+L052,ceba,ca,test,20034,"Onion, raw",20023,"Celery stalk, raw",1.0,False,False,True,False
+L053,zanahoria,es,test,20009,"Carrot, raw",20009,"Carrot, raw",1.0,False,True,False,True
+L054,pastanaga,ca,test,20009,"Carrot, raw",4008,"Potato, peeled, raw",1.0,False,False,True,False
+L056,patates,ca,test,4008,"Potato, peeled, raw",4101,"Sweet potato, raw",1.0,False,False,True,False
+L058,all,ca,test,11000,"Garlic, fresh",None,,0.0,True,False,False,False
+L059,aceite de oliva,es,test,17270,"Olive oil, extra virgin",17270,"Olive oil, extra virgin",1.0,False,True,False,True
+L061,arroz,es,test,9100,"Rice, raw",20007,"Carrot, canned, drained",1.0,False,False,True,False
+L063,pollo,es,test,36017,"Chicken, breast, without skin, raw",36030,"Chicken leg, meat, boiled/cooked in water",1.0,False,False,True,False
+L064,pollastre,ca,test,36017,"Chicken, breast, without skin, raw",36006,"Chicken leg, meat, roasted/baked",1.0,False,False,True,False
+L065,ternera,es,test,6254,"Beef, minced steak, 15% fat, raw",6201,"Beef, steak or beef steak, raw",1.0,False,False,True,True
+L066,vedella,ca,test,6254,"Beef, minced steak, 15% fat, raw",20047_1,"Tomato, raw",1.0,False,False,True,False
+L076,formatge parmesà,ca,test,12120,"Parmesan cheese, from cow's milk",12120,"Parmesan cheese, from cow's milk",1.0,False,True,False,True
+L078,xampinyons,ca,test,,NO MATCH,None,,0.0,True,True,False,True
+L081,salmón,es,test,26036,"Salmon, raw, farmed",26036,"Salmon, raw, farmed",1.0,False,True,False,True
+L083,atún,es,test,26039,"Tuna, plain, canned, drained",26053,"Tuna, raw",1.0,False,False,True,True
+L085,merluza,es,test,26044,"European hake, raw",26048,"Hake, fillet, frozen, raw",1.0,False,False,True,True
+L087,gambas,es,test,10021,"Shrimp or prawn, raw",10021,"Shrimp or prawn, raw",1.0,False,True,False,True
+L089,cordero,es,test,21504,"Lamb, shoulder, raw",21502,"Lamb, leg, raw",1.0,False,False,True,False
+L090,xai,ca,test,21504,"Lamb, shoulder, raw",None,,0.0,True,False,False,False
+L091,cerdo,es,test,28302,"Pork, loin, raw",28204,"Pork filet mignon, raw",1.0,False,False,True,True
+L093,pavo,es,test,36304,"Turkey, escalope, raw",28963,"Chicken cooked ham, in slices",1.0,False,False,True,True
+L094,gall dindi,ca,test,36304,"Turkey, escalope, raw",20507,"Chick pea, cooked",1.0,False,False,True,False
+L096,mongetes,ca,test,20511,"Haricot bean, canned, drained",20061_2,"French bean, raw (Kenya by plane)",1.0,False,False,True,False
+L098,carbassó,ca,test,20020,"Courgette or zucchini, pulp and peel, raw",None,,0.0,True,False,False,False
+L099,brócoli,es,test,20057,"Broccoli, raw",20057,"Broccoli, raw",1.0,False,True,False,True
+L100,guisantes,es,test,20084,"Garden peas, frozen, raw",20036,"Garden peas, canned, drained",1.0,False,False,True,False
