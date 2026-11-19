@@ -85,6 +85,12 @@ def test_llm_matcher_format_without_api():
     none = LLMMatcher(complete=lambda s, u: '{"code": "NONE"}', cache=False).match("xampinyons")
     assert none["uncertain"] and none["co2e_per_kg"] is None
 
+    # verify step: a "no" turns a confident pick into "uncertain" (no CO2e number)
+    def fake_no(system, user):
+        return '{"same_food": "no"}' if "same_food" in system else fake(system, user)
+    v = LLMMatcher(complete=fake_no, cache=False, verify=True).match("merluza")
+    assert v["uncertain"] and v["co2e_per_kg"] is None and v["rejected_by_verify"]
+
 
 if __name__ == "__main__":
     test_every_diet_gets_a_valid_week()

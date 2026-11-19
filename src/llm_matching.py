@@ -11,6 +11,9 @@ recipe weight is usually raw, so we use it in two small steps:
                   Cheap, local, no big model to download.
   3. CHOOSE     — the LLM gets the numbered candidates and returns ONE code or NONE,
                   plus a confidence (high / medium / low).
+  4. VERIFY     — (optional, verify=True) a second, simple yes/no question: "is <chosen food> the
+                  same food as <ingredient>?". If the answer is no, the match becomes "uncertain".
+                  This turns absurd picks (arroz -> "Carrot, canned") into "no number shown".
 
 Same output format as RapidFuzzMatcher, so the rest of the pipeline does not change.
 Score = confidence mapped to a number (high 1.0, medium 0.6, low 0.3, NONE 0.0).
@@ -75,6 +78,14 @@ Labelling rules of our team:
 - If no candidate is the same food, answer NONE. Do not use a different food as a substitute.
 Return ONLY a JSON object: {"code": "<candidate code or NONE>", "confidence": "high|medium|low", "reason": "<max 12 words>"}"""
 
+VERIFY_SYSTEM = """Check a link between a recipe ingredient and a food database entry.
+The ingredient can be in English, Spanish or Catalan. Translate it in your head first.
+Answer "yes" if the database food IS the same food (a different state, cut or preparation is still "yes":
+"lentil" and "Lentil, dried" -> yes; "beef" and "Beef, steak, raw" -> yes).
+Answer "no" if it is a different food, or a product that only contains it or is made from it
+("arroz" and "Carrot, canned" -> no; "lemon" and "Lemon juice" -> no).
+Return ONLY a JSON object: {"same_food": "yes|no"}"""
+
 
 def hf_complete(model_name: str = DEFAULT_MODELS["hf"], load_in_4bit: bool = True):
     """Return complete(system, user) -> str with an open model (greedy decoding = reproducible).
@@ -137,7 +148,7 @@ class LLMMatcher:
     def __init__(self, agribalyse: pd.DataFrame | None = None, model: str | None = None,
                  provider: str = DEFAULT_PROVIDER,
                  threshold: float = DEFAULT_THRESHOLD, k: int = DEFAULT_K, complete=None,
-                 cache: bool = True, cache_file: Path = CACHE_FILE):
+                 cache: bool = True, cache_file: Path = CACHE_FILE, verify: bool = False):
         agb = agribalyse if agribalyse is not None else load_agribalyse()
         keep = ~agb["group"].isin(EXCLUDED_GROUPS) & ~agb["subgroup"].isin(EXCLUDED_SUBGROUPS)
         self.agb = agb[keep].reset_index(drop=True)
@@ -146,7 +157,7 @@ class LLMMatcher:
         self.names_fr = self.agb["name_fr"].fillna("").str.lower().tolist()
         self.provider = provider
         self.model_name = model or DEFAULT_MODELS[provider]
-        self.threshold, self.k = threshold, k
+        self.threshold, self.k, self.verify = threshold, k, verify
         self._complete = complete
         self.cache_file, self.use_cache = cache_file, cache
         self.cache = json.loads(cache_file.read_text()) if cache and cache_file.exists() else {}
@@ -192,6 +203,11 @@ class LLMMatcher:
         user = f"Ingredient: {ingredient}\n\nCandidates (code | English name | French name):\n" + "\n".join(lines)
         return self._ask(CHOOSE_SYSTEM, user)
 
+    def same_food(self, ingredient: str, code: str) -> bool:
+        row = self.by_code.loc[code]
+        user = f"Ingredient: {ingredient}\nDatabase food: {row['agribalyse_name']} / {row['name_fr']}"
+        return str(self._ask(VERIFY_SYSTEM, user).get("same_food", "no")).lower().startswith("y")
+
     # --- public API (same format as the other matchers) -----------------------------------
     def match(self, ingredient: str) -> dict:
         norm = self.normalise(ingredient)
@@ -204,6 +220,9 @@ class LLMMatcher:
         code = str(pick.get("code", "NONE")).strip()
         valid = code in set(self.agb.loc[rows, "agribalyse_code"])
         score = CONFIDENCE_SCORE.get(str(pick.get("confidence", "")).lower(), 0.0) if valid else 0.0
+        rejected = bool(valid and self.verify and not self.same_food(ingredient, code))
+        if rejected:
+            score = 0.0              # keep the code for the error analysis, but show no number
         uncertain = score < self.threshold
         row = self.by_code.loc[code] if valid else None
         return {
@@ -216,6 +235,7 @@ class LLMMatcher:
             # extra fields (ignored by the rest of the pipeline, useful in the app / for review)
             "normalised": norm.get("english"),
             "reason": pick.get("reason"),
+            "rejected_by_verify": rejected,
             "candidates": self.agb.loc[rows[:5], "agribalyse_name"].tolist(),
         }
 
