@@ -41,10 +41,19 @@ were matched by hand, so the user never needed the matcher. Two changes:
 3. If it wins: run it ONCE on TEST, report it here whatever the result, and re-run notebook 09
    (`precompute_matches.py --verify --fewshot`) so the app uses it.
 
-| Configuration | TUNE CO₂e OK | TUNE confident errors | TEST (chosen one only) |
-|---|---:|---:|---:|
-| Qwen 14B + verify | _to fill_ | _to fill_ | 39/50 CO₂e OK (already known) |
-| Qwen 14B + verify + fewshot | _to fill_ | _to fill_ | _only if chosen_ |
+| Configuration | TUNE CO₂e OK (all 50) | TUNE CO₂e OK (44, without the 6 example words) | TUNE confident errors (44) | TEST |
+|---|---:|---:|---:|---|
+| Qwen 14B + verify | 40/50 | 38/44 | 8 | 29 correct, 39/50 CO₂e OK, 14 confident errors (log 08 run) |
+| Qwen 14B + verify + fewshot | 41/50 | **39/44** | 8 | 30 correct, 38/50 CO₂e OK, 13 confident errors (run once) |
+
+**Result:** few-shot won on TUNE by 1 ingredient (an English word, not Catalan), so by the rule decided
+before running it was run once on TEST. On TEST it is a tie (+1 correct, −1 CO₂e OK, −1 confident error).
+**Catalan does not improve: 6/13 CO₂e OK in both.** Worked examples are not enough for Catalan, which
+confirms the design: the AI proposes and a person confirms.
+Note: the 6 few-shot words belong to TUNE, so the fair TUNE comparison uses the other 44.
+Example of a dangerous error: "carbassó" (zucchini) → "European bass, raw" (a fish), with medium confidence.
+The app's AI matches (`data/ingredient_matches_llm.csv`) were recomputed with this configuration:
+43 confident, 5 uncertain out of 48 recipe ingredients.
 
 Honesty note: the few-shot words come only from TUNE, but the *idea* of fixing Catalan came from looking at
 the TEST errors of section 1, so any TEST gain is reported as **exploratory** (as in log 08).

@@ -1,49 +1,49 @@
 model,ingredient,agribalyse_code,agribalyse_name,score,uncertain,rejected_by_verify,normalised,reason
-Qwen/Qwen2.5-14B-Instruct + verify,avocado,13004,"Avocado, pulp, raw",1.0,False,False,avocado,Avocado pulp raw match
-Qwen/Qwen2.5-14B-Instruct + verify,beef,6001,"Beef, rib, raw",1.0,False,False,beef,"Beef rib, raw match"
-Qwen/Qwen2.5-14B-Instruct + verify,bell pepper,,,0.0,True,False,bell pepper,"Generic bell pepper code missing, closest is red/green/yellow raw"
-Qwen/Qwen2.5-14B-Instruct + verify,black bean,20511,"Haricot bean, canned, drained",0.0,True,True,black bean,Black bean matches haricot bean
-Qwen/Qwen2.5-14B-Instruct + verify,broccoli,20057,"Broccoli, raw",1.0,False,False,broccoli,Raw broccoli match
-Qwen/Qwen2.5-14B-Instruct + verify,burger bun,7259,"Rolls for hamburger/hotdog (buns), prepacked",1.0,False,False,burger bun,Burger bun match
-Qwen/Qwen2.5-14B-Instruct + verify,butter,16400,"Butter, 82% fat, unsalted",1.0,False,False,butter,Butter matches butter code
-Qwen/Qwen2.5-14B-Instruct + verify,cabbage,20014,"Red cabbage, raw",0.0,True,True,cabbage,"Red cabbage, raw matches cabbage"
-Qwen/Qwen2.5-14B-Instruct + verify,carrot,20009,"Carrot, raw",1.0,False,False,carrot,Same raw carrot
-Qwen/Qwen2.5-14B-Instruct + verify,celery,20023,"Celery stalk, raw",1.0,False,False,celery,"Same food, raw state"
-Qwen/Qwen2.5-14B-Instruct + verify,cheddar,12726,"Cheddar cheese, from cow's milk",1.0,False,False,cheddar cheese,Cheddar cheese match
-Qwen/Qwen2.5-14B-Instruct + verify,chicken,36006,"Chicken leg, meat, roasted/baked",1.0,False,False,chicken meat,Raw chicken meat
-Qwen/Qwen2.5-14B-Instruct + verify,chickpea,20532,"Chick pea, canned, drained",1.0,False,False,chickpea,Canned and drained chickpeas
-Qwen/Qwen2.5-14B-Instruct + verify,chorizo,30315,"Spicy pork sausage with red pepper, no precision",1.0,False,False,chorizo,"Same food, raw chorizo"
-Qwen/Qwen2.5-14B-Instruct + verify,coconut milk,18041,Coconut milk or coconut cream,1.0,False,False,coconut milk,Coconut milk listed directly
-Qwen/Qwen2.5-14B-Instruct + verify,corn tortilla,7813,"Corn tortilla wrap, to be filled",1.0,False,False,corn tortilla,Corn tortilla match
-Qwen/Qwen2.5-14B-Instruct + verify,egg,22000,"Egg, raw",1.0,False,False,egg,Same raw egg
-Qwen/Qwen2.5-14B-Instruct + verify,garlic,11000,"Garlic, fresh",1.0,False,False,garlic,"Garlic, fresh match"
-Qwen/Qwen2.5-14B-Instruct + verify,green pea,20072,"Garden peas, raw",1.0,False,False,pea,Same raw food
-Qwen/Qwen2.5-14B-Instruct + verify,hake,26044,"European hake, raw",1.0,False,False,hake,"European hake, raw match"
-Qwen/Qwen2.5-14B-Instruct + verify,kidney bean,20524,"Red kidney bean, canned, drained",1.0,False,False,kidney bean,"Kidney bean, canned, drained"
-Qwen/Qwen2.5-14B-Instruct + verify,lamb,21515,"Lamb, saddle, raw",1.0,False,False,lamb meat,"Lamb leg, raw match"
-Qwen/Qwen2.5-14B-Instruct + verify,lemon,2028,"Lemon juice, pure juice",0.0,True,True,lemon,Lemon juice match
-Qwen/Qwen2.5-14B-Instruct + verify,lentil,20504,"Lentil, dried",1.0,False,False,lentil,Dried lentil matches raw state
-Qwen/Qwen2.5-14B-Instruct + verify,lettuce,20031,"Lettuce, raw",1.0,False,False,lettuce,Common lettuce variety
-Qwen/Qwen2.5-14B-Instruct + verify,mushroom,,,0.0,True,False,mushroom,No raw mushroom match
-Qwen/Qwen2.5-14B-Instruct + verify,noodles,9810,"Dried pasta, raw",1.0,False,False,noodles,"Dried pasta, raw"
-Qwen/Qwen2.5-14B-Instruct + verify,olive oil,17270,"Olive oil, extra virgin",1.0,False,False,olive oil,Extra virgin olive oil match
-Qwen/Qwen2.5-14B-Instruct + verify,onion,20034,"Onion, raw",1.0,False,False,onion,Same raw onion
-Qwen/Qwen2.5-14B-Instruct + verify,parmesan,12120,"Parmesan cheese, from cow's milk",1.0,False,False,parmesan cheese,Parmesan cheese match
-Qwen/Qwen2.5-14B-Instruct + verify,pasta,9810,"Dried pasta, raw",1.0,False,False,pasta,"Dried pasta, raw"
-Qwen/Qwen2.5-14B-Instruct + verify,peanut butter,15202,Peanut butter or peanut paste,1.0,False,False,peanut butter,Peanut butter matches candidate
-Qwen/Qwen2.5-14B-Instruct + verify,pork,28003,"Pork loin, raw",1.0,False,False,pork,"Pork loin, raw match"
-Qwen/Qwen2.5-14B-Instruct + verify,potato,4008,"Potato, peeled, raw",1.0,False,False,potato,Raw peeled potato match
-Qwen/Qwen2.5-14B-Instruct + verify,rice,9100,"Rice, raw",1.0,False,False,rice,Raw rice match
-Qwen/Qwen2.5-14B-Instruct + verify,salmon,26036,"Salmon, raw, farmed",1.0,False,False,salmon,Raw farmed salmon match
-Qwen/Qwen2.5-14B-Instruct + verify,shrimp,10021,"Shrimp or prawn, raw",1.0,False,False,shrimp,Shrimp raw match
-Qwen/Qwen2.5-14B-Instruct + verify,soy sauce,11104,"Soy sauce, prepacked",1.0,False,False,soy sauce,Soy sauce match
-Qwen/Qwen2.5-14B-Instruct + verify,spinach,20059,"Spinach, raw",1.0,False,False,spinach,Raw spinach match
-Qwen/Qwen2.5-14B-Instruct + verify,split pea,20515,"Split pea, dried",1.0,False,False,split pea,"Split pea, dried matches"
-Qwen/Qwen2.5-14B-Instruct + verify,sunflower oil,17440,Sunflower oil,1.0,False,False,sunflower oil,"Same food, sunflower oil"
-Qwen/Qwen2.5-14B-Instruct + verify,tofu,20904,"Tofu, plain",1.0,False,False,tofu,Tofu matches plain tofu
-Qwen/Qwen2.5-14B-Instruct + verify,tomato,20047_1,"Tomato, raw",1.0,False,False,tomato,Raw tomato match
-Qwen/Qwen2.5-14B-Instruct + verify,tuna,26053,"Tuna, raw",1.0,False,False,tuna,Raw tuna matches recipe
-Qwen/Qwen2.5-14B-Instruct + verify,turkey,36301,"Turkey, meat, raw",1.0,False,False,turkey meat,Turkey meat raw match
-Qwen/Qwen2.5-14B-Instruct + verify,wheat tortilla,7815_1,"Wheat tortilla wrap, to be filled",1.0,False,False,wheat tortilla,"Same food, tortilla wrap"
-Qwen/Qwen2.5-14B-Instruct + verify,white bean,20511,"Haricot bean, canned, drained",1.0,False,False,white bean,"White bean, canned, drained"
-Qwen/Qwen2.5-14B-Instruct + verify,zucchini,20020,"Courgette or zucchini, pulp and peel, raw",1.0,False,False,zucchini,"Same food, raw state"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,avocado,13004,"Avocado, pulp, raw",1.0,False,False,avocado,Avocado pulp raw match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,beef,6001,"Beef, rib, raw",1.0,False,False,beef,"Beef rib, raw match"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,bell pepper,20085,"Sweet pepper, green, raw",0.6,False,False,bell pepper,Green bell pepper raw match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,black bean,20501,"Haricot bean, dry",0.0,True,True,black bean,"Black bean matches haricot blanc, dry"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,broccoli,20057,"Broccoli, raw",1.0,False,False,broccoli,Same raw broccoli
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,burger bun,7259,"Rolls for hamburger/hotdog (buns), prepacked",1.0,False,False,burger bun,Burger bun match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,butter,16400,"Butter, 82% fat, unsalted",1.0,False,False,butter,Butter matches butter code
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,cabbage,20016,"Cauliflower, raw",0.0,True,True,cabbage,"Closest match, not exact"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,carrot,20009,"Carrot, raw",1.0,False,False,carrot,Same raw food
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,celery,20023,"Celery stalk, raw",1.0,False,False,celery,"Same food, raw state"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,cheddar,12726,"Cheddar cheese, from cow's milk",1.0,False,False,cheddar cheese,Cheddar cheese match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,chicken,36003,"Chicken, meat, raw",1.0,False,False,chicken,Raw chicken meat match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,chickpea,20532,"Chick pea, canned, drained",1.0,False,False,chickpea,Canned and drained matches recipe weight
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,chorizo,30315,"Spicy pork sausage with red pepper, no precision",1.0,False,False,chorizo,"Same food, raw chorizo"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,coconut milk,18041,Coconut milk or coconut cream,1.0,False,False,coconut milk,Coconut milk listed directly
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,corn tortilla,7813,"Corn tortilla wrap, to be filled",1.0,False,False,corn tortilla,Corn tortilla match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,egg,22000,"Egg, raw",1.0,False,False,egg,Raw whole egg match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,garlic,11000,"Garlic, fresh",1.0,False,False,garlic,"Same food, fresh garlic"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,green pea,20037,"Garden peas, cooked",1.0,False,False,pea,"Same food, cooked"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,hake,26044,"European hake, raw",1.0,False,False,hake,"Same food, raw"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,kidney bean,20524,"Red kidney bean, canned, drained",1.0,False,False,kidney bean,"Kidney bean, canned, drained"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,lamb,21500,"Lamb, cutlet, raw",1.0,False,False,lamb,"Lamb cutlet, raw match"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,lemon,2028,"Lemon juice, pure juice",0.0,True,True,lemon,Lemon juice match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,lentil,20504,"Lentil, dried",1.0,False,False,lentil,"Dried lentil, most common form"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,lettuce,20031,"Lettuce, raw",1.0,False,False,lettuce,Common lettuce variety
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,mushroom,,,0.0,True,False,mushroom,No raw mushroom match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,noodles,9900,"Rice noodle, dried",0.0,True,True,pasta,Matches dried noodles
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,olive oil,17270,"Olive oil, extra virgin",1.0,False,False,olive oil,Extra virgin olive oil match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,onion,20034,"Onion, raw",1.0,False,False,onion,"Same food, raw state"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,parmesan,12120,"Parmesan cheese, from cow's milk",1.0,False,False,parmesan cheese,Parmesan cheese match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,pasta,9810,"Dried pasta, raw",1.0,False,False,pasta,"Dried pasta, raw"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,peanut butter,15202,Peanut butter or peanut paste,1.0,False,False,peanut butter,Peanut butter match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,pork,28003,"Pork loin, raw",1.0,False,False,pork,"Pork loin, raw match"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,potato,4008,"Potato, peeled, raw",1.0,False,False,potato,Raw peeled potato match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,rice,9100,"Rice, raw",1.0,False,False,rice,Raw rice match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,salmon,26036,"Salmon, raw, farmed",1.0,False,False,salmon,Raw farmed salmon match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,shrimp,10021,"Shrimp or prawn, raw",1.0,False,False,shrimp,Shrimp raw match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,soy sauce,11104,"Soy sauce, prepacked",1.0,False,False,soy sauce,Soy sauce match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,spinach,20059,"Spinach, raw",1.0,False,False,spinach,Raw spinach available
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,split pea,20515,"Split pea, dried",1.0,False,False,split pea,"Split pea, dried match"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,sunflower oil,17440,Sunflower oil,1.0,False,False,sunflower oil,"Same food, sunflower oil"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,tofu,20904,"Tofu, plain",1.0,False,False,tofu,Tofu matches plain tofu
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,tomato,20047_1,"Tomato, raw",1.0,False,False,tomato,Raw tomato match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,tuna,26053,"Tuna, raw",0.6,False,False,tuna,Raw tuna closest match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,turkey,36301,"Turkey, meat, raw",1.0,False,False,turkey,Turkey meat raw match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,wheat tortilla,7815_1,"Wheat tortilla wrap, to be filled",1.0,False,False,wheat tortilla,Wheat tortilla match
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,white bean,20501,"Haricot bean, dry",0.6,False,False,haricot bean,"Dry white beans, closest match"
+Qwen/Qwen2.5-14B-Instruct + verify + fewshot,zucchini,20020,"Courgette or zucchini, pulp and peel, raw",1.0,False,False,zucchini,"Same food, raw"
