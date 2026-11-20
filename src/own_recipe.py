@@ -34,6 +34,9 @@ SOURCE_REMEMBERED = "Chosen before by a user"
 
 CONFIRMATIONS_FILE = DATA_DIR / "user_confirmations.csv"
 
+# Words ignored when looking for the main word of a multi-word ingredient (EN/ES/CA)
+MAIN_WORD_STOP = {"de", "del", "la", "el", "les", "los", "las", "of", "the", "d'", "con", "amb", "with", "y", "i", "and"}
+
 # ----------------------------------------------------------------------------- parsing
 NUMBER_WORDS = {"un": 1, "una": 1, "uno": 1, "a": 1, "an": 1, "one": 1, "dos": 2, "two": 2, "tres": 3,
                 "three": 3, "quatre": 4, "cuatro": 4, "four": 4, "cinc": 5, "cinco": 5, "five": 5,
@@ -201,8 +204,25 @@ class RecipeAnalyser:
             if not r["uncertain"] and r["agribalyse_code"]:
                 return self._row(r["agribalyse_code"], SOURCE_LIVE_AI)
             candidate_codes = list(r.get("candidate_codes") or [])
+        part = self.main_word(key)                     # "ternera picada" -> team label of "ternera"
+        if part is not None:
+            return self._row(self.known[part], f"{SOURCE_KNOWN} (as “{part}”)")
         return {"agribalyse_code": None, "agribalyse_name": None, "co2e_per_kg": None, "source": None,
                 "candidate_codes": candidate_codes}
+
+    def main_word(self, key: str) -> str | None:
+        """Longest part of a multi-word name that the team already labelled (with a food), e.g.
+        "ternera picada" -> "ternera", "formatge parmesà ratllat" -> "formatge parmesà".
+        Used only when the live AI is off or not sure; the table shows which word was used (dev log 10)."""
+        words = [w for w in re.findall(r"[a-zà-ÿ']+", key) if w not in MAIN_WORD_STOP]
+        for size in range(len(words) - 1, 0, -1):
+            for start in range(len(words) - size + 1):
+                phrase = " ".join(words[start:start + size])
+                for k in (phrase, phrase[:-1] if phrase.endswith("s") else None,
+                          phrase[:-2] if phrase.endswith("es") else None):
+                    if k and len(k) >= 3 and k in self.known and not pd.isna(self.known[k]):
+                        return k
+        return None
 
     def co2e(self, parsed: pd.DataFrame, choices: dict[str, str] | None = None,
              resolved: dict[str, dict] | None = None) -> pd.DataFrame:
