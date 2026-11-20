@@ -196,6 +196,21 @@ def test_fewshot_examples_only_from_tune():
     assert words and all(split.get(w) == "tune" for w in words)
 
 
+def test_main_word_and_partial_recipe():
+    """Review of PR #12: "ternera picada" uses the team label of "ternera"; a recipe with an ingredient
+    left out is not compared with the planner and is never called "already low-carbon"."""
+    import tempfile
+    from pathlib import Path
+    from own_recipe import RecipeAnalyser
+    a = RecipeAnalyser(confirmations_file=Path(tempfile.mkdtemp()) / "conf.csv")
+    for name, word in (("ternera picada", "ternera"), ("vedella picada", "vedella")):
+        r = a.resolve(name)
+        assert r["agribalyse_code"] == a.known[word] and word in r["source"], (name, r)
+    assert a.resolve("carabassa")["agribalyse_code"] is None       # unknown: the user still chooses
+    src = (Path(__file__).resolve().parents[1] / "src" / "app.py").read_text(encoding="utf-8")
+    assert "we cannot say this recipe is low-carbon" in src and "Not compared" in src
+
+
 if __name__ == "__main__":
     test_every_diet_gets_a_valid_week()
     test_swap_keeps_the_rules()
@@ -207,4 +222,5 @@ if __name__ == "__main__":
     test_llm_matcher_format_without_api()
     test_own_recipe_flexible_parser_memory_and_swaps()
     test_fewshot_examples_only_from_tune()
+    test_main_word_and_partial_recipe()
     print("Smoke test passed")
