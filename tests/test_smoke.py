@@ -160,6 +160,42 @@ def test_llm_matcher_format_without_api():
     assert v["uncertain"] and v["co2e_per_kg"] is None and v["rejected_by_verify"]
 
 
+def test_own_recipe_flexible_parser_memory_and_swaps():
+    """Pieces/spoons in ES/CA, remembering the user's choice, and lower-carbon swaps."""
+    import tempfile
+    from matching import load_agribalyse
+    from own_recipe import (RecipeAnalyser, SOURCE_REMEMBERED, apply_swaps, parse_recipe, parse_servings,
+                            suggest_swaps)
+
+    text = "Lasaña (4 personas)\n- 400 g de ternera picada\n- 2 cebollas\n- 2 cucharadas de aceite de oliva\n- mig kg de patates"
+    parsed, errors = parse_recipe(text)
+    assert list(parsed["ingredient"]) == ["ternera picada", "cebollas", "aceite de oliva", "patates"]
+    assert list(parsed["quantity_g"]) == [400, 300, 28, 500] and errors == []
+    assert list(parsed["estimated"]) == [False, True, True, False] and parse_servings(text) == 4
+
+    a = RecipeAnalyser(confirmations_file=Path(tempfile.mkdtemp()) / "conf.csv")
+    assert a.resolve("cebollas")["agribalyse_code"]                               # plural of a team name
+    beef = a.known["beef"]
+    a.remember("Ternera picada", beef)                                            # the user chose it once
+    assert a.resolve("ternera picada")["source"] == SOURCE_REMEMBERED
+
+    agb = load_agribalyse()
+    res = a.co2e(parsed)
+    swaps = suggest_swaps(res, agb)
+    assert swaps[0]["ingredient"] == "ternera picada" and swaps[0]["swap_to"] == "lentil"
+    assert apply_swaps(res, swaps[:1], agb)["kg_co2e"].sum() < 0.5 * res["kg_co2e"].sum()
+
+
+def test_fewshot_examples_only_from_tune():
+    """The few-shot words must come from the TUNE split, never from TEST."""
+    import re
+    from llm_matching import FEWSHOT_EXAMPLES
+    labels = pd.read_csv(DATA / "ingredient_labels.csv")
+    words = re.findall(r'- "([^"]+)"', FEWSHOT_EXAMPLES)
+    split = labels.set_index("ingredient_text")["split"]
+    assert words and all(split.get(w) == "tune" for w in words)
+
+
 if __name__ == "__main__":
     test_every_diet_gets_a_valid_week()
     test_swap_keeps_the_rules()
@@ -169,4 +205,6 @@ if __name__ == "__main__":
     test_ai_checked_matcher()
     test_app_with_ai_checked_and_own_recipe()
     test_llm_matcher_format_without_api()
+    test_own_recipe_flexible_parser_memory_and_swaps()
+    test_fewshot_examples_only_from_tune()
     print("Smoke test passed")

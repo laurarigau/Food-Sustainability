@@ -13,6 +13,7 @@
 | 06 | 13 Nov 2026 | [Streamlit Interface and User Experience](06_dev_log_streamlit_interface.md)       |
 | 07 | 13 Nov 2026 | [AI Matcher Revision 2 and Review Fixes](07_dev_log_ai_rev2_and_review_fixes.md)   |
 | 08 | 18 Nov 2026 | [Clean-Environment Check and Presentation](08_dev_log_clean_check_and_presentation.md) |
+| 09 | 20 Nov 2026 | [AI + team check, "Analyse your recipe" and swaps](09_dev_log_ai_in_the_app.md) |
 
 ## Current Status (updated 13 Nov 2026)
 

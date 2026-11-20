@@ -18,7 +18,7 @@ import streamlit as st
 
 from co2e import (SOURCE_CONFIRMED, SOURCE_CORRECTED, SOURCE_TEAM, ai_checked_available, get_matcher,
                   ingredient_co2e, load_recipes, recipe_co2e)
-from own_recipe import RecipeAnalyser, parse_recipe
+from own_recipe import RecipeAnalyser, apply_swaps, parse_recipe, parse_servings, suggest_swaps
 from planner import ALLOWED_TAGS, DAYS, alternatives, plan_week, swap_meal, swap_savings, weekly_total
 
 MATCHER_LABELS = {
@@ -28,7 +28,14 @@ MATCHER_LABELS = {
     "ai": "Embedding AI (experimental, not verified)",
 }
 VERIFIED = {"ai_checked", "labels"}
-EXAMPLE_RECIPE = "300 g merluza\n200 g arroz\n150 g tomàquet\n100 g quinoa\n20 g olive oil"
+EXAMPLE_RECIPE = """Lasaña de la abuela (4 personas)
+400 g de ternera picada
+12 placas de lasaña
+2 cebollas
+400 g tomàquet
+100 g formatge parmesà
+2 cucharadas de aceite de oliva
+150 g quinoa"""
 
 
 def ai_available() -> bool:
@@ -49,7 +56,7 @@ def live_ai():
     from llm_matching import LLMMatcher, ollama_available
     if not ollama_available():
         return None
-    return LLMMatcher(provider="ollama", verify=True, threshold=0.3)
+    return LLMMatcher(provider="ollama", verify=True, fewshot=True, threshold=0.3)
 
 
 @st.cache_resource(show_spinner=False)
@@ -278,9 +285,9 @@ def render_plan() -> None:
 def render_own_recipe() -> None:
     st.subheader("Analyse your own recipe")
     st.write(
-        "Write one ingredient per line with its weight, in English, Spanish or Catalan "
-        "(for example `300 g merluza` or `1 kg patates`). We estimate its carbon footprint and "
-        "compare it with the meals of the planner."
+        "Write one ingredient per line, in English, Spanish or Catalan (for example `300 g merluza`, "
+        "`1 kg patates`, `2 huevos` or `2 cucharadas de aceite`). We estimate its carbon footprint, "
+        "compare it with the meals of the planner and show what to change to reduce it."
     )
     ai = live_ai()
     if ai is not None:
@@ -293,12 +300,16 @@ def render_own_recipe() -> None:
 
     c1, c2 = st.columns([3, 1])
     name = c1.text_input("Recipe name", value="My recipe")
-    servings = int(c2.number_input("Servings", min_value=1, max_value=20, value=2, step=1))
-    text = st.text_area("Ingredients", value=EXAMPLE_RECIPE, height=170)
+    text = st.text_area("Ingredients", value=EXAMPLE_RECIPE, height=200)
+    servings = int(c2.number_input("Servings", min_value=1, max_value=20,
+                                   value=parse_servings(text) or 2, step=1))
 
     parsed, errors = parse_recipe(text)
     if errors:
-        st.warning("These lines were skipped (write a quantity in g or kg first): " + "; ".join(errors))
+        st.warning("These lines were skipped (write a quantity first, e.g. `5 g sal`): " + "; ".join(errors))
+    if parsed["estimated"].any():
+        st.caption("Estimated weights (pieces or spoons; write grams to be exact): " + ", ".join(
+            f"{r.ingredient} ≈ {r.quantity_g:.0f} g" for r in parsed[parsed["estimated"]].itertuples()))
     if parsed.empty:
         st.info("Add at least one ingredient with its weight.")
         return
@@ -315,15 +326,18 @@ def render_own_recipe() -> None:
     choices = {}
     missing = [i for i in parsed["ingredient"].unique() if resolved[i]["agribalyse_code"] is None]
     if missing:
-        st.markdown("**Help us with these ingredients** — choose the closest food, or leave it out:")
+        st.markdown("**Help us with these ingredients** — choose the closest food, or leave it out. "
+                    "Your choice is remembered, so next time it is automatic:")
         for ing in missing:
-            cands = analyser.candidates(ing)
+            cands = analyser.candidates(ing, first=resolved[ing].get("candidate_codes"))
             opts = [None] + [c for c, _ in cands]
             names = dict(cands)
             choices[ing] = st.selectbox(
                 f"“{ing}”", options=opts, key=f"pick_{ing}",
                 format_func=lambda c: "— leave it out —" if c is None else names[c],
             )
+            if choices[ing] and analyser.remembered.get(ing) != choices[ing]:
+                analyser.remember(ing, choices[ing])
         st.caption("Tip: if the list does not fit, write the ingredient in English (e.g. `mushroom`).")
 
     result = analyser.co2e(parsed, choices, resolved)
@@ -362,6 +376,32 @@ def render_own_recipe() -> None:
         lowest = complete.sort_values("kg_co2e_serving").iloc[0]
         st.caption(f"For reference: the lowest-carbon meal in the planner is **{lowest['recipe_name']}** "
                    f"({lowest['kg_co2e_serving']:.2f} kg CO₂e per serving); the typical one is {median:.2f} kg.")
+        render_swaps(result, total, servings, analyser.agb)
+
+
+def render_swaps(result: pd.DataFrame, total: float, servings: int, agb: pd.DataFrame) -> None:
+    """Lower-carbon swaps for the biggest emitters; tick them to see the new footprint."""
+    st.markdown("#### 🌱 How to reduce it")
+    swaps = suggest_swaps(result, agb)
+    if not swaps:
+        st.info("No high-impact ingredient (meat, fish, cheese, butter): this recipe is already low-carbon.")
+        return
+    chosen, used = [], set()
+    for k, s in enumerate(swaps):
+        text = (f"Use **half the {s['ingredient']}** ({s['quantity_g']:.0f} g → {s['quantity_g'] / 2:.0f} g)"
+                if s["swap_to"] == "half" else
+                f"Swap **{s['ingredient']}** ({s['quantity_g']:.0f} g) for **{s['swap_to']}**")
+        label = f"{text}: −{s['kg_saved']:.2f} kg CO₂e (−{s['pct_of_recipe']:.0%} of the recipe)"
+        if st.checkbox(label, key=f"swap_{k}_{s['ingredient']}_{s['swap_to']}",
+                       disabled=s["ingredient"] in used):
+            chosen.append(s)
+            used.add(s["ingredient"])                  # one swap per ingredient
+    if chosen:
+        new_total = float(apply_swaps(result, chosen, agb)["kg_co2e"].sum())
+        st.success(f"With these changes: **{new_total / servings:.2f} kg CO₂e per serving** instead of "
+                   f"{total / servings:.2f} (−{(1 - new_total / total):.0%}).")
+    st.caption("Swaps keep the same weight (a simplification, not a nutrition rule). "
+               "Your choices of food are saved in data/user_confirmations.csv and never used to score the AI.")
 
 
 with tab_plan:

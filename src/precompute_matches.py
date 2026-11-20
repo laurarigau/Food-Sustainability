@@ -24,10 +24,12 @@ def main():
     ap.add_argument("--model", default="Qwen/Qwen2.5-14B-Instruct")
     ap.add_argument("--provider", default="hf", choices=["hf", "anthropic", "ollama"])
     ap.add_argument("--verify", action="store_true")
+    ap.add_argument("--fewshot", action="store_true", help="only if it won on TUNE (dev log 09)")
     args = ap.parse_args()
 
     names = sorted(pd.read_csv(DATA_DIR / "recipe_ingredients.csv")["ingredient_clean"].unique())
-    m = LLMMatcher(model=args.model, provider=args.provider, threshold=THRESHOLD, verify=args.verify)
+    m = LLMMatcher(model=args.model, provider=args.provider, threshold=THRESHOLD, verify=args.verify,
+                   fewshot=args.fewshot)
     rows = []
     for i, name in enumerate(names, 1):
         r = m.match(name)
@@ -35,7 +37,7 @@ def main():
                                         "uncertain", "rejected_by_verify", "normalised", "reason")})
         print(f"{i:2}/{len(names)}  {name:15} -> {r['agribalyse_name']}  (uncertain={r['uncertain']})")
     out = pd.DataFrame(rows)
-    out.insert(0, "model", m.model_name + (" + verify" if args.verify else ""))
+    out.insert(0, "model", m.model_name + (" + verify" if args.verify else "") + (" + fewshot" if args.fewshot else ""))
     out.to_csv(OUT_FILE, index=False)
     print(f"\nSaved {len(out)} AI matches to {OUT_FILE}")
     print(f"Confident: {(~out.uncertain).sum()} | uncertain: {out.uncertain.sum()}")
