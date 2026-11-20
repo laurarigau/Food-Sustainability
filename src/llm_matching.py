@@ -22,6 +22,10 @@ Below the threshold the match is "uncertain" (the threshold is chosen on TUNE, l
 The LLM only sees general labelling rules (the team criteria of dev log 05, written in general
 form). No TEST label is shown to it.
 
+Few-shot (fewshot=True, dev log 09): the NORMALISE step also gets a few worked examples, all taken
+from the TUNE split (Catalan and Spanish words), because most remaining errors were Catalan words
+the model did not translate. TUNE is the split we are allowed to learn from; TEST stays untouched.
+
 Every LLM answer is stored in data/llm_cache.json, so a run can be repeated for free and the
 results are reproducible. Delete the file (or use cache=False) to ask the LLM again.
 
@@ -29,8 +33,11 @@ Two providers (choose with provider=...):
   - "hf"        : free, open model run locally with transformers (default Qwen/Qwen2.5-7B-Instruct,
                   4-bit). Run it in Google Colab with a GPU: notebooks/07_llm_matching_colab.ipynb
   - "anthropic" : Claude API (pip install anthropic; export ANTHROPIC_API_KEY=...)
+  - "ollama"    : free local model on a laptop (https://ollama.com, then `ollama pull qwen2.5:7b`).
+                  Used by the app's "Analyse your recipe" tab when Ollama is running.
 Any other provider: pass `complete=my_function`, where my_function(system, user) -> str.
 """
+import hashlib
 import json
 import os
 import re
@@ -42,7 +49,8 @@ from rapidfuzz import fuzz, process
 from matching import DATA_DIR, load_agribalyse
 
 DEFAULT_PROVIDER = "hf"
-DEFAULT_MODELS = {"hf": "Qwen/Qwen2.5-7B-Instruct", "anthropic": "claude-haiku-5-5"}
+DEFAULT_MODELS = {"hf": "Qwen/Qwen2.5-7B-Instruct", "anthropic": "claude-haiku-5-5", "ollama": "qwen2.5:7b"}
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 DEFAULT_THRESHOLD = 0.6          # placeholder; evaluate_matching.py chooses it on TUNE
 DEFAULT_K = 20                   # candidates shown to the LLM
 CACHE_FILE = DATA_DIR / "llm_cache.json"
@@ -78,6 +86,16 @@ Labelling rules of our team:
 - If no candidate is the same food, answer NONE. Do not use a different food as a substitute.
 Return ONLY a JSON object: {"code": "<candidate code or NONE>", "confidence": "high|medium|low", "reason": "<max 12 words>"}"""
 
+# Worked examples for the NORMALISE step. ONLY TUNE-split words (data/ingredient_labels.csv, split=tune).
+FEWSHOT_EXAMPLES = """
+Examples (Catalan words often look nothing like Spanish: translate from Catalan when the word is not Spanish):
+- "llenties" (Catalan) -> {"english": "lentil", "synonyms": ["lentils"], "french": "lentille", "state": "dry"}
+- "lluç" (Catalan) -> {"english": "hake", "synonyms": ["european hake"], "french": "merlu", "state": "raw"}
+- "tonyina" (Catalan) -> {"english": "tuna", "synonyms": ["tuna, canned"], "french": "thon", "state": "canned"}
+- "ou" (Catalan) -> {"english": "egg", "synonyms": ["hen egg"], "french": "oeuf", "state": "raw"}
+- "pebrot" (Catalan) -> {"english": "sweet pepper", "synonyms": ["bell pepper"], "french": "poivron", "state": "raw"}
+- "judías blancas" (Spanish) -> {"english": "haricot bean", "synonyms": ["white bean"], "french": "haricot blanc", "state": "canned"}"""
+
 VERIFY_SYSTEM = """Check a link between a recipe ingredient and a food database entry.
 The ingredient can be in English, Spanish or Catalan. Translate it in your head first.
 Answer "yes" if the database food IS the same food (a different state, cut or preparation is still "yes":
@@ -85,6 +103,9 @@ Answer "yes" if the database food IS the same food (a different state, cut or pr
 Answer "no" if it is a different food, or a product that only contains it or is made from it
 ("arroz" and "Carrot, canned" -> no; "lemon" and "Lemon juice" -> no).
 Return ONLY a JSON object: {"same_food": "yes|no"}"""
+
+
+_LEGACY_PROMPTS = {NORMALISE_SYSTEM, CHOOSE_SYSTEM, VERIFY_SYSTEM}
 
 
 def hf_complete(model_name: str = DEFAULT_MODELS["hf"], load_in_4bit: bool = True):
@@ -119,6 +140,32 @@ def hf_complete(model_name: str = DEFAULT_MODELS["hf"], load_in_4bit: bool = Tru
     return complete
 
 
+def ollama_available(timeout: float = 0.5) -> bool:
+    """True when an Ollama server is running on this computer."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(f"{OLLAMA_URL}/api/tags", timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+
+def ollama_complete(model: str = DEFAULT_MODELS["ollama"]):
+    """Return complete(system, user) -> str using a local Ollama model (temperature 0)."""
+    import urllib.request
+
+    def complete(system: str, user: str) -> str:
+        body = json.dumps({"model": model, "stream": False, "options": {"temperature": 0},
+                           "messages": [{"role": "system", "content": system},
+                                        {"role": "user", "content": user}]}).encode()
+        req = urllib.request.Request(f"{OLLAMA_URL}/api/chat", data=body,
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return json.loads(r.read())["message"]["content"]
+
+    return complete
+
+
 def anthropic_complete(model: str = DEFAULT_MODELS["anthropic"]):
     """Return complete(system, user) -> str using the Anthropic API (temperature 0)."""
     import anthropic
@@ -148,7 +195,8 @@ class LLMMatcher:
     def __init__(self, agribalyse: pd.DataFrame | None = None, model: str | None = None,
                  provider: str = DEFAULT_PROVIDER,
                  threshold: float = DEFAULT_THRESHOLD, k: int = DEFAULT_K, complete=None,
-                 cache: bool = True, cache_file: Path = CACHE_FILE, verify: bool = False):
+                 cache: bool = True, cache_file: Path = CACHE_FILE, verify: bool = False,
+                 fewshot: bool = False):
         agb = agribalyse if agribalyse is not None else load_agribalyse()
         keep = ~agb["group"].isin(EXCLUDED_GROUPS) & ~agb["subgroup"].isin(EXCLUDED_SUBGROUPS)
         self.agb = agb[keep].reset_index(drop=True)
@@ -157,17 +205,19 @@ class LLMMatcher:
         self.names_fr = self.agb["name_fr"].fillna("").str.lower().tolist()
         self.provider = provider
         self.model_name = model or DEFAULT_MODELS[provider]
-        self.threshold, self.k, self.verify = threshold, k, verify
+        self.threshold, self.k, self.verify, self.fewshot = threshold, k, verify, fewshot
         self._complete = complete
         self.cache_file, self.use_cache = cache_file, cache
         self.cache = json.loads(cache_file.read_text()) if cache and cache_file.exists() else {}
 
     # --- LLM calls (cached) -------------------------------------------------------------
     def _ask(self, system: str, user: str) -> dict:
-        key = f"{self.model_name}||{system[:40]}||{user}"
+        # old prompts keep their old cache key (existing caches still work); new prompts use a hash
+        tag = system[:40] if system in _LEGACY_PROMPTS else hashlib.sha1(system.encode()).hexdigest()[:12]
+        key = f"{self.model_name}||{tag}||{user}"
         if key not in self.cache:
             if self._complete is None:
-                make = hf_complete if self.provider == "hf" else anthropic_complete
+                make = {"hf": hf_complete, "anthropic": anthropic_complete, "ollama": ollama_complete}[self.provider]
                 self._complete = make(self.model_name)
             self.cache[key] = self._complete(system, user)
             if self.use_cache:
@@ -176,7 +226,8 @@ class LLMMatcher:
 
     # --- steps ----------------------------------------------------------------------------
     def normalise(self, ingredient: str) -> dict:
-        return self._ask(NORMALISE_SYSTEM, f"Ingredient: {ingredient}")
+        system = NORMALISE_SYSTEM + FEWSHOT_EXAMPLES if self.fewshot else NORMALISE_SYSTEM
+        return self._ask(system, f"Ingredient: {ingredient}")
 
     def retrieve(self, queries_en: list[str], queries_fr: list[str]) -> list[int]:
         """Candidate rows for the LLM.
@@ -237,6 +288,9 @@ class LLMMatcher:
             "reason": pick.get("reason"),
             "rejected_by_verify": rejected,
             "candidates": self.agb.loc[rows[:5], "agribalyse_name"].tolist(),
+            # for the "you choose" step in the app: the LLM's own pick first, then the next candidates
+            "candidate_codes": list(dict.fromkeys(
+                ([code] if valid else []) + self.agb.loc[rows[:8], "agribalyse_code"].tolist())),
         }
 
     def match_many(self, ingredients: list[str]) -> list[dict]:

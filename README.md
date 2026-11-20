@@ -33,10 +33,12 @@ This is the riskiest step, so the AI is used here (see dev log 03).
 | `rapidfuzz` | Most similar name, letter by letter (baseline) | **7/50** |
 | `ai` rev 1 | Multilingual sentence embeddings + FAISS | **11/50** |
 | `ai` rev 2 | `BAAI/bge-m3` + FAISS | **12/50** (meets the ≥12/50 decision rule) |
-| `llm` (branch `llm-matcher`) | Open LLM (Qwen 2.5 7B) translates → RapidFuzz retrieves candidates (EN + FR names) → LLM chooses one or NONE | *pending: run notebook 07 in Colab* |
+| `llm` | Open LLM (Qwen 2.5 7B) translates → RapidFuzz retrieves candidates (EN + FR names) → LLM chooses one or NONE | **23/50** (CO₂e OK 31/50) |
+| `llm` + verify | Qwen 2.5 14B + a yes/no check of the chosen food | **29/50** (CO₂e OK **39/50**, 14 confident errors) |
 
-12/50 beats the baseline but still means many wrong matches, so **the app uses the
-team-verified labels by default** and shows the automatic methods only for comparison.
+The LLM + verify is the best method, but it still makes confident errors (mostly Catalan words), so in the
+app **the AI proposes and a person confirms**: the team for the 25 planner recipes, the user for their own
+recipe (dev log 09).
 Details and error analysis: `docs/07_dev_log_ai_rev2_and_review_fixes.md`.
 
 ## How to run
@@ -60,6 +62,20 @@ python src/evaluate_matching.py --matcher ai --candidates strict --objective saf
 ```
 
 The AI option only appears in the app when these packages are installed.
+
+### What the app does
+
+- **📅 Weekly plan** — 7 meals for your diet, kg CO₂e per meal and per week, replace meals and see the saving.
+  Default matching **"AI + team check"**: an LLM (Qwen 2.5 14B + verify, answers precomputed in notebook 09,
+  `data/ingredient_matches_llm.csv`) proposes the Agribalyse food for every ingredient and the team label
+  confirms or corrects it. The panel *"What did the AI do?"* shows where the AI was right.
+- **🔍 Analyse your recipe** — write your own recipe in English, Spanish or Catalan (`300 g merluza`).
+  Ingredients the team already checked are recognised automatically; new ones are matched by a local AI model
+  if [Ollama](https://ollama.com) is running (`ollama pull qwen2.5:7b`), otherwise you choose from the closest
+  Agribalyse foods. Quantities can be grams or pieces/spoons (`2 huevos`, `2 cucharadas de aceite`). The food you choose is
+  remembered (`data/user_confirmations.csv`, never used to score the AI). You get kg CO₂e per serving, the
+  comparison with the planner meals, the biggest contributor and **lower-carbon swaps** (e.g. beef → lentils, −80%)
+  that you can tick to see the new footprint.
 
 Optional, LLM matcher (free open model; needs a GPU, so run it in Google Colab):
 open `notebooks/07_llm_matching_colab.ipynb` in Colab (Runtime → GPU) and run all cells. Or:

@@ -4,6 +4,8 @@
 import sys
 from pathlib import Path
 
+import pandas as pd
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from co2e import get_matcher, ingredient_co2e, load_recipes, recipe_co2e  # noqa: E402
@@ -11,6 +13,7 @@ from planner import (ALLOWED_TAGS, alternatives, plan_week, proteins_are_unique,
                      swap_meal, swap_savings, weekly_total)
 
 SRC = Path(__file__).resolve().parent.parent / "src"
+DATA = SRC.parent / "data"
 
 
 def build():
@@ -59,12 +62,77 @@ def test_streamlit_app_runs():
         print("streamlit not installed: app test skipped")
         return
     at = AppTest.from_file(str(SRC / "app.py"), default_timeout=60).run()
-    assert at.sidebar.selectbox[2].value == "labels"   # verified matches are the default
+    assert at.sidebar.selectbox[2].value in ("ai_checked", "labels")   # a verified method is the default
     at.sidebar.button[0].click().run()
     assert not at.exception and not at.error
     at.selectbox[0].set_value("Thursday").run()
     at.button[0].click().run()                          # "Replace meal"
     assert not at.exception and not at.error
+
+
+def test_own_recipe():
+    """'Analyse your recipe': parsing, team-confirmed ES/CA names, user choice for a new food."""
+    from own_recipe import RecipeAnalyser, parse_recipe, SOURCE_KNOWN, SOURCE_USER
+
+    parsed, errors = parse_recipe("300 g merluza\n1 kg de patates\n150g quinoa\nsal al gusto")
+    assert list(parsed["quantity_g"]) == [300, 1000, 150] and errors == ["sal al gusto"]
+    a = RecipeAnalyser()
+    res = a.co2e(parsed)
+    assert res.loc[0, "source"] == SOURCE_KNOWN and res.loc[0, "kg_co2e"] > 0      # merluza -> hake
+    assert pd.isna(res.loc[2, "kg_co2e"])                                         # quinoa: user must choose
+    code = a.candidates("quinoa")[0][0]
+    res = a.co2e(parsed, {"quinoa": code})
+    assert res.loc[2, "source"] == SOURCE_USER and res.loc[2, "kg_co2e"] > 0
+
+
+def _fake_ai_matches(path):
+    """AI answers for the recipe ingredients: all = team label, except one wrong and one unsure."""
+    labels = pd.read_csv(DATA / "ingredient_labels.csv", dtype={"agribalyse_code": str})
+    lab = labels.drop_duplicates("canonical_ingredient").set_index("canonical_ingredient")["agribalyse_code"]
+    names = sorted(pd.read_csv(DATA / "recipe_ingredients.csv")["ingredient_clean"].unique())
+    df = pd.DataFrame({"model": "fake", "ingredient": names, "agribalyse_code": [lab[n] for n in names]})
+    df["uncertain"] = df["agribalyse_code"].isna()
+    df.loc[df.ingredient == "lamb", "agribalyse_code"] = lab["beef"]               # AI wrong -> team corrects
+    df.loc[df.ingredient == "tuna", "uncertain"] = True                            # AI not sure -> team
+    df.to_csv(path, index=False)
+
+
+def test_ai_checked_matcher():
+    import tempfile
+    from co2e import (CheckedAIMatcher, LabelMatcher, SOURCE_CONFIRMED, SOURCE_CORRECTED, SOURCE_TEAM,
+                      SOURCE_NONE)
+    path = Path(tempfile.mkdtemp()) / "ai.csv"
+    _fake_ai_matches(path)
+    m, team = CheckedAIMatcher(ai_file=path), LabelMatcher()
+    assert m.match("egg")["source"] == SOURCE_CONFIRMED
+    lamb = m.match("lamb")
+    assert lamb["source"] == SOURCE_CORRECTED and lamb["agribalyse_code"] == team.match("lamb")["agribalyse_code"]
+    assert m.match("tuna")["source"] == SOURCE_TEAM
+    assert m.match("mushroom")["source"] == SOURCE_NONE and m.match("mushroom")["uncertain"]
+
+
+def test_app_with_ai_checked_and_own_recipe():
+    """The app with 'AI + team check' (fake AI file) and the 'Analyse your recipe' tab."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except ImportError:
+        print("streamlit not installed: app test skipped")
+        return
+    import os, tempfile
+    path = Path(tempfile.mkdtemp()) / "ai.csv"
+    _fake_ai_matches(path)
+    os.environ["AI_MATCHES_FILE"] = str(path)
+    try:
+        import importlib, co2e
+        importlib.reload(co2e)
+        at = AppTest.from_file(str(SRC / "app.py"), default_timeout=60).run()
+        assert at.sidebar.selectbox[2].value == "ai_checked"
+        at.sidebar.button[0].click().run()
+        assert not at.exception and not at.error
+        assert any("What did the AI do" in e.label for e in at.expander)
+        assert any(m.label == "Per serving" for m in at.metric)           # own recipe tab computed
+    finally:
+        del os.environ["AI_MATCHES_FILE"]
 
 
 def test_llm_matcher_format_without_api():
@@ -92,10 +160,67 @@ def test_llm_matcher_format_without_api():
     assert v["uncertain"] and v["co2e_per_kg"] is None and v["rejected_by_verify"]
 
 
+def test_own_recipe_flexible_parser_memory_and_swaps():
+    """Pieces/spoons in ES/CA, remembering the user's choice, and lower-carbon swaps."""
+    import tempfile
+    from matching import load_agribalyse
+    from own_recipe import (RecipeAnalyser, SOURCE_REMEMBERED, apply_swaps, parse_recipe, parse_servings,
+                            suggest_swaps)
+
+    text = "Lasaña (4 personas)\n- 400 g de ternera picada\n- 2 cebollas\n- 2 cucharadas de aceite de oliva\n- mig kg de patates"
+    parsed, errors = parse_recipe(text)
+    assert list(parsed["ingredient"]) == ["ternera picada", "cebollas", "aceite de oliva", "patates"]
+    assert list(parsed["quantity_g"]) == [400, 300, 28, 500] and errors == []
+    assert list(parsed["estimated"]) == [False, True, True, False] and parse_servings(text) == 4
+
+    a = RecipeAnalyser(confirmations_file=Path(tempfile.mkdtemp()) / "conf.csv")
+    assert a.resolve("cebollas")["agribalyse_code"]                               # plural of a team name
+    beef = a.known["beef"]
+    a.remember("Ternera picada", beef)                                            # the user chose it once
+    assert a.resolve("ternera picada")["source"] == SOURCE_REMEMBERED
+
+    agb = load_agribalyse()
+    res = a.co2e(parsed)
+    swaps = suggest_swaps(res, agb)
+    assert swaps[0]["ingredient"] == "ternera picada" and swaps[0]["swap_to"] == "lentil"
+    assert apply_swaps(res, swaps[:1], agb)["kg_co2e"].sum() < 0.5 * res["kg_co2e"].sum()
+
+
+def test_fewshot_examples_only_from_tune():
+    """The few-shot words must come from the TUNE split, never from TEST."""
+    import re
+    from llm_matching import FEWSHOT_EXAMPLES
+    labels = pd.read_csv(DATA / "ingredient_labels.csv")
+    words = re.findall(r'- "([^"]+)"', FEWSHOT_EXAMPLES)
+    split = labels.set_index("ingredient_text")["split"]
+    assert words and all(split.get(w) == "tune" for w in words)
+
+
+def test_main_word_and_partial_recipe():
+    """Review of PR #12: "ternera picada" uses the team label of "ternera"; a recipe with an ingredient
+    left out is not compared with the planner and is never called "already low-carbon"."""
+    import tempfile
+    from pathlib import Path
+    from own_recipe import RecipeAnalyser
+    a = RecipeAnalyser(confirmations_file=Path(tempfile.mkdtemp()) / "conf.csv")
+    for name, word in (("ternera picada", "ternera"), ("vedella picada", "vedella")):
+        r = a.resolve(name)
+        assert r["agribalyse_code"] == a.known[word] and word in r["source"], (name, r)
+    assert a.resolve("carabassa")["agribalyse_code"] is None       # unknown: the user still chooses
+    src = (Path(__file__).resolve().parents[1] / "src" / "app.py").read_text(encoding="utf-8")
+    assert "we cannot say this recipe is low-carbon" in src and "Not compared" in src
+
+
 if __name__ == "__main__":
     test_every_diet_gets_a_valid_week()
     test_swap_keeps_the_rules()
     test_swap_savings_only_counts_changed_meals()
     test_streamlit_app_runs()
+    test_own_recipe()
+    test_ai_checked_matcher()
+    test_app_with_ai_checked_and_own_recipe()
     test_llm_matcher_format_without_api()
+    test_own_recipe_flexible_parser_memory_and_swaps()
+    test_fewshot_examples_only_from_tune()
+    test_main_word_and_partial_recipe()
     print("Smoke test passed")

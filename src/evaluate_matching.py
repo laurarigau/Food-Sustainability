@@ -7,6 +7,10 @@ Usage:
     python src/evaluate_matching.py --details             # also print every TEST row
     python src/evaluate_matching.py --matcher llm                          # open LLM, free (GPU: use Colab, notebook 07)
     python src/evaluate_matching.py --matcher llm --provider anthropic     # Claude API (needs ANTHROPIC_API_KEY)
+    python src/evaluate_matching.py --matcher llm --model Qwen/Qwen2.5-14B-Instruct --verify --fewshot --tune-only
+
+Honest workflow (dev log 09): compare configurations with --tune-only (TEST is not touched), pick ONE,
+then run it once without --tune-only to get the TEST number.
 
 Method (same for every matcher, so the comparison is fair):
   1. The "uncertain" threshold is chosen on the TUNE split only.
@@ -103,9 +107,15 @@ def evaluate_tune(matcher, grid, labels=None, objective: str = "accuracy", penal
     pred_tune = predict(matcher, tune_labels)
     threshold, tune_acc = choose_threshold(pred_tune, grid, objective, penalty)
 
+    tune = apply_threshold(pred_tune, threshold)
     return {
         "threshold": threshold,
-        "tune_acc": tune_acc
+        "tune_acc": tune_acc,
+        "tune": tune,
+        "tune_correct": int(tune.correct.sum()), "tune_n": len(tune),
+        "tune_uncertain": int(tune.uncertain.sum()),
+        "tune_confident_errors": int(tune.confident_error.sum()),
+        "tune_co2e_ok": int(tune.co2e_ok.sum()),
     }
 
 def evaluate(matcher, grid, labels: pd.DataFrame | None = None, objective: str = "accuracy",
@@ -122,7 +132,7 @@ def evaluate(matcher, grid, labels: pd.DataFrame | None = None, objective: str =
 
 
 def build_matcher(name: str, model: str | None = None, candidates: str | None = None, passage: str | None = None,
-                  provider: str = "hf", verify: bool = False):
+                  provider: str = "hf", verify: bool = False, fewshot: bool = False):
     if name == "rapidfuzz":
         return RapidFuzzMatcher(threshold=0), np.arange(0, 101, 5)
     if name == "ai":
@@ -132,7 +142,7 @@ def build_matcher(name: str, model: str | None = None, candidates: str | None = 
         return m, np.round(np.arange(0, 1.0001, 0.05), 2)
     if name == "llm":
         from llm_matching import LLMMatcher
-        m = LLMMatcher(model=model, provider=provider, threshold=0.0, verify=verify)
+        m = LLMMatcher(model=model, provider=provider, threshold=0.0, verify=verify, fewshot=fewshot)
         # scores are confidence levels: low 0.3, medium 0.6, high 1.0. Score 0 (NONE, or rejected by the
         # verify step) must always be "uncertain", so the lowest threshold is 0.3, not 0.
         return m, [0.3, 0.6, 1.0]
@@ -147,12 +157,27 @@ def main():
     ap.add_argument("--passage", default=None, choices=["en", "en_fr"])
     ap.add_argument("--objective", default="accuracy", choices=["accuracy", "safe"])
     ap.add_argument("--penalty", type=float, default=1.0, help="weight of a confident error (objective 'safe')")
-    ap.add_argument("--provider", default="hf", choices=["hf", "anthropic"], help="LLM matcher only")
+    ap.add_argument("--provider", default="hf", choices=["hf", "anthropic", "ollama"], help="LLM matcher only")
     ap.add_argument("--verify", action="store_true", help="LLM matcher only: extra yes/no check of the chosen food")
+    ap.add_argument("--fewshot", action="store_true", help="LLM matcher only: worked examples from TUNE")
+    ap.add_argument("--tune-only", action="store_true", help="evaluate on TUNE only (TEST is not touched)")
     ap.add_argument("--details", action="store_true")
     args = ap.parse_args()
 
-    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage, args.provider, args.verify)
+    matcher, grid = build_matcher(args.matcher, args.model, args.candidates, args.passage, args.provider,
+                                  args.verify, args.fewshot)
+    if args.tune_only:
+        r = evaluate_tune(matcher, grid, objective=args.objective, penalty=args.penalty)
+        name = getattr(matcher, "model_name", args.matcher)
+        extra = (" + verify" if getattr(matcher, "verify", False) else "") + \
+                (" + fewshot" if getattr(matcher, "fewshot", False) else "")
+        print(f"Matcher: {args.matcher} ({name}{extra}) | TUNE ONLY, TEST not touched")
+        print(f"Threshold: {r['threshold']}")
+        print(f"TUNE: {r['tune_correct']}/{r['tune_n']} correct, {r['tune_co2e_ok']}/{r['tune_n']} CO2e OK, "
+              f"{r['tune_uncertain']} uncertain, {r['tune_confident_errors']} confident errors")
+        print(r["tune"].groupby("language")[["correct", "co2e_ok"]].sum().join(
+            r["tune"].groupby("language").size().rename("n")))
+        return
     r = evaluate(matcher, grid, objective=args.objective, penalty=args.penalty)
     if args.matcher == "rapidfuzz":
         label = "rapidfuzz"
@@ -179,7 +204,8 @@ def main():
     if args.matcher == "ai":
         tag += f"_{matcher.model_name.split('/')[-1]}_{matcher.candidates}_{matcher.passage}"
     if args.matcher == "llm":
-        tag += f"_{matcher.model_name.split('/')[-1]}" + ("_verify" if matcher.verify else "")
+        tag += f"_{matcher.model_name.split('/')[-1]}" + ("_verify" if matcher.verify else "") + \
+               ("_fewshot" if matcher.fewshot else "")
     if args.objective != "accuracy":
         tag += f"_{args.objective}"
     out_file = DATA_DIR / f"results_{tag}_test.csv"
