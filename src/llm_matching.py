@@ -29,6 +29,8 @@ Two providers (choose with provider=...):
   - "hf"        : free, open model run locally with transformers (default Qwen/Qwen2.5-7B-Instruct,
                   4-bit). Run it in Google Colab with a GPU: notebooks/07_llm_matching_colab.ipynb
   - "anthropic" : Claude API (pip install anthropic; export ANTHROPIC_API_KEY=...)
+  - "ollama"    : free local model on a laptop (https://ollama.com, then `ollama pull qwen2.5:7b`).
+                  Used by the app's "Analyse your recipe" tab when Ollama is running.
 Any other provider: pass `complete=my_function`, where my_function(system, user) -> str.
 """
 import json
@@ -42,7 +44,8 @@ from rapidfuzz import fuzz, process
 from matching import DATA_DIR, load_agribalyse
 
 DEFAULT_PROVIDER = "hf"
-DEFAULT_MODELS = {"hf": "Qwen/Qwen2.5-7B-Instruct", "anthropic": "claude-haiku-5-5"}
+DEFAULT_MODELS = {"hf": "Qwen/Qwen2.5-7B-Instruct", "anthropic": "claude-haiku-5-5", "ollama": "qwen2.5:7b"}
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 DEFAULT_THRESHOLD = 0.6          # placeholder; evaluate_matching.py chooses it on TUNE
 DEFAULT_K = 20                   # candidates shown to the LLM
 CACHE_FILE = DATA_DIR / "llm_cache.json"
@@ -119,6 +122,32 @@ def hf_complete(model_name: str = DEFAULT_MODELS["hf"], load_in_4bit: bool = Tru
     return complete
 
 
+def ollama_available(timeout: float = 0.5) -> bool:
+    """True when an Ollama server is running on this computer."""
+    import urllib.request
+    try:
+        with urllib.request.urlopen(f"{OLLAMA_URL}/api/tags", timeout=timeout):
+            return True
+    except Exception:
+        return False
+
+
+def ollama_complete(model: str = DEFAULT_MODELS["ollama"]):
+    """Return complete(system, user) -> str using a local Ollama model (temperature 0)."""
+    import urllib.request
+
+    def complete(system: str, user: str) -> str:
+        body = json.dumps({"model": model, "stream": False, "options": {"temperature": 0},
+                           "messages": [{"role": "system", "content": system},
+                                        {"role": "user", "content": user}]}).encode()
+        req = urllib.request.Request(f"{OLLAMA_URL}/api/chat", data=body,
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return json.loads(r.read())["message"]["content"]
+
+    return complete
+
+
 def anthropic_complete(model: str = DEFAULT_MODELS["anthropic"]):
     """Return complete(system, user) -> str using the Anthropic API (temperature 0)."""
     import anthropic
@@ -167,7 +196,7 @@ class LLMMatcher:
         key = f"{self.model_name}||{system[:40]}||{user}"
         if key not in self.cache:
             if self._complete is None:
-                make = hf_complete if self.provider == "hf" else anthropic_complete
+                make = {"hf": hf_complete, "anthropic": anthropic_complete, "ollama": ollama_complete}[self.provider]
                 self._complete = make(self.model_name)
             self.cache[key] = self._complete(system, user)
             if self.use_cache:

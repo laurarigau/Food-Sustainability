@@ -4,21 +4,31 @@ Run from the repository root:
     pip install -r requirements.txt
     streamlit run src/app.py
 
-The AI matcher is optional: it only appears in the menu when requirements-ai.txt is installed.
+Two tabs:
+  - Weekly plan: 7 meals for your diet, CO2e per meal and per week, replace meals and compare.
+    Default matching "AI + team check": the LLM answers (precomputed, notebook 09) are shown next
+    to the team check, so you can see what the AI got right and what the team corrected.
+  - Analyse your recipe: write your own recipe (EN/ES/CA) and get its CO2e. If a local Ollama model
+    is running, the AI matches new ingredients live; otherwise you choose from the closest foods.
 """
 import importlib.util
 
 import pandas as pd
 import streamlit as st
 
-from co2e import get_matcher, ingredient_co2e, load_recipes, recipe_co2e
+from co2e import (SOURCE_CONFIRMED, SOURCE_CORRECTED, SOURCE_TEAM, ai_checked_available, get_matcher,
+                  ingredient_co2e, load_recipes, recipe_co2e)
+from own_recipe import RecipeAnalyser, parse_recipe
 from planner import ALLOWED_TAGS, DAYS, alternatives, plan_week, swap_meal, swap_savings, weekly_total
 
 MATCHER_LABELS = {
-    "labels": "Team-verified matches (recommended)",
+    "ai_checked": "AI + team check (recommended)",
+    "labels": "Team-verified matches only",
     "rapidfuzz": "RapidFuzz baseline (automatic, not verified)",
-    "ai": "AI matching (experimental, not verified)",
+    "ai": "Embedding AI (experimental, not verified)",
 }
+VERIFIED = {"ai_checked", "labels"}
+EXAMPLE_RECIPE = "300 g merluza\n200 g arroz\n150 g tomàquet\n100 g quinoa\n20 g olive oil"
 
 
 def ai_available() -> bool:
@@ -31,6 +41,20 @@ def load_data(matcher_name: str):
     recipes, ingredients = load_recipes()
     ingredient_results = ingredient_co2e(ingredients, get_matcher(matcher_name))
     return recipe_co2e(recipes, ingredient_results), ingredient_results
+
+
+@st.cache_resource(show_spinner=False)
+def live_ai():
+    """LLM matcher on a local Ollama model, or None when Ollama is not running."""
+    from llm_matching import LLMMatcher, ollama_available
+    if not ollama_available():
+        return None
+    return LLMMatcher(provider="ollama", verify=True, threshold=0.3)
+
+
+@st.cache_resource(show_spinner=False)
+def recipe_analyser(use_live_ai: bool):
+    return RecipeAnalyser(live_ai=live_ai() if use_live_ai else None)
 
 
 def fmt_kg(value) -> str:
@@ -46,9 +70,8 @@ st.set_page_config(page_title="Food Sustainability Meal Planner", page_icon="�
 st.title("🥗 Your Weekly Meal Planner")
 st.write(
     "Create a weekly meal plan that matches your diet, explore lower-carbon alternatives "
-    "and understand the estimated carbon footprint of your meals."
+    "and understand the estimated carbon footprint of your meals — or analyse a recipe of your own."
 )
-st.divider()
 
 # ---------------------------------------------------------------- SIDEBAR: PREFERENCES
 st.sidebar.header("Your preferences")
@@ -63,19 +86,22 @@ goal = st.sidebar.selectbox(
 
 people = int(st.sidebar.number_input("Number of people", min_value=1, max_value=10, value=1, step=1))
 
-matcher_options = ["labels", "rapidfuzz"] + (["ai"] if ai_available() else [])
+matcher_options = (["ai_checked"] if ai_checked_available() else []) + ["labels", "rapidfuzz"] \
+    + (["ai"] if ai_available() else [])
 matcher_name = st.sidebar.selectbox(
     "Ingredient matching method", options=matcher_options, format_func=MATCHER_LABELS.get
 )
-if "ai" not in matcher_options:
-    st.sidebar.caption("AI matching is hidden: install `requirements-ai.txt` to enable it.")
-if matcher_name != "labels":
+if "ai_checked" not in matcher_options:
+    st.sidebar.caption("AI + team check is hidden: run notebook 09 to create data/ingredient_matches_llm.csv.")
+if matcher_name not in VERIFIED:
     st.sidebar.warning(
         "Automatic matching makes mistakes (see the evaluation in the dev logs). "
         "Use it to compare methods, not to trust the CO₂e numbers."
     )
 
 generate = st.sidebar.button("Generate my weekly plan", type="primary", width="stretch")
+
+tab_plan, tab_recipe = st.tabs(["📅 Weekly plan", "🔍 Analyse your recipe"])
 
 # ---------------------------------------------------------------- GENERATE A NEW WEEK
 if generate:
@@ -92,131 +118,253 @@ if generate:
             matcher_name=matcher_name,
         )
     except Exception as error:  # show the reason in the page instead of crashing
-        st.error(f"Could not generate the plan: {error}")
+        tab_plan.error(f"Could not generate the plan: {error}")
 
-if "plan" not in st.session_state:
-    st.info("Choose your preferences in the sidebar and click **Generate my weekly plan** to get started.")
-    st.stop()
 
-plan = st.session_state["plan"]
-original_plan = st.session_state["original_plan"]
-recipes = st.session_state["recipes"]
-ingredient_results = st.session_state["ingredient_results"]
-plan_diet = st.session_state["diet"]
-plan_matcher = st.session_state["matcher_name"]
-verified = plan_matcher == "labels"
+def render_ai_summary(ingredient_results: pd.DataFrame) -> None:
+    """What the AI did for the recipe ingredients (AI + team check only)."""
+    ing = ingredient_results.drop_duplicates("ingredient_clean")
+    counts = ing["source"].value_counts()
+    confirmed, corrected, unsure = (int(counts.get(s, 0)) for s in (SOURCE_CONFIRMED, SOURCE_CORRECTED, SOURCE_TEAM))
+    with st.expander(f"🤖 What did the AI do? It matched {confirmed} of {len(ing)} ingredients exactly "
+                     f"as the team; the team corrected {corrected} and checked {unsure} where the AI was not sure."):
+        st.write(
+            "An LLM (Qwen 2.5 14B + a verification step, notebook 08/09) proposed an Agribalyse food for each "
+            "ingredient. The team checked every proposal: the CO₂e uses the team-checked food, so the numbers "
+            "are reliable, and you can see where the AI was right."
+        )
+        table = ing[["ingredient_clean", "source", "ai_suggestion", "agribalyse_name"]].rename(columns={
+            "ingredient_clean": "Ingredient", "source": "Result", "ai_suggestion": "AI proposed",
+            "agribalyse_name": "Food used for CO₂e"}).sort_values("Result")
+        st.dataframe(table.fillna("—"), hide_index=True, width="stretch")
 
-if (diet, matcher_name) != (plan_diet, plan_matcher):
-    st.info("You changed the diet or matching method. Click **Generate my weekly plan** to apply it.")
 
-# ---------------------------------------------------------------- WEEKLY SUMMARY
-st.subheader("Your 7-day meal plan")
-st.caption(f"Diet: {plan_diet.capitalize()} | Matching: {MATCHER_LABELS[plan_matcher]} | People: {people}")
+def render_plan() -> None:
+    if "plan" not in st.session_state:
+        st.info("Choose your preferences in the sidebar and click **Generate my weekly plan** to get started.")
+        return
 
-current_total = weekly_total(plan, people)
-saved, comparable = swap_savings(original_plan, plan, people)
+    plan = st.session_state["plan"]
+    original_plan = st.session_state["original_plan"]
+    recipes = st.session_state["recipes"]
+    ingredient_results = st.session_state["ingredient_results"]
+    plan_diet = st.session_state["diet"]
+    plan_matcher = st.session_state["matcher_name"]
+    verified = plan_matcher in VERIFIED
+    show_sources = ingredient_results["source"].notna().any()
 
-col1, col2, col3 = st.columns(3)
-col1.metric("Meals planned", len(plan))
-col2.metric("Weekly CO₂e" if all_complete(plan) else "Known weekly CO₂e", f"{current_total:.2f} kg")
-if comparable:
-    # Negative = lower footprint than the original plan (shown in green)
-    col3.metric("Change vs original plan", f"{-saved:+.2f} kg CO₂e",
-                delta=f"{-saved:+.2f} kg", delta_color="inverse")
-else:
-    col3.metric("Change vs original plan", "Not calculated")
+    if (diet, matcher_name) != (plan_diet, plan_matcher):
+        st.info("You changed the diet or matching method. Click **Generate my weekly plan** to apply it.")
 
-if not all_complete(plan):
-    st.warning(
-        "Some ingredients have no confident match, so the weekly figure only includes the matched "
-        "ingredients. It is a partial estimate, not the complete footprint."
+    # ------------------------------------------------------------ WEEKLY SUMMARY
+    st.subheader("Your 7-day meal plan")
+    st.caption(f"Diet: {plan_diet.capitalize()} | Matching: {MATCHER_LABELS[plan_matcher]} | People: {people}")
+
+    current_total = weekly_total(plan, people)
+    saved, comparable = swap_savings(original_plan, plan, people)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Meals planned", len(plan))
+    col2.metric("Weekly CO₂e" if all_complete(plan) else "Known weekly CO₂e", f"{current_total:.2f} kg")
+    if comparable and abs(saved) < 0.005:
+        col3.metric("Change vs original plan", "No change yet")
+    elif comparable:
+        # Negative = lower footprint than the original plan (shown in green)
+        col3.metric("Change vs original plan", f"{-saved:+.2f} kg CO₂e",
+                    delta=f"{-saved:+.2f} kg", delta_color="inverse")
+    else:
+        col3.metric("Change vs original plan", "Not calculated")
+
+    if not all_complete(plan):
+        st.warning(
+            "Some ingredients have no confident match, so the weekly figure only includes the matched "
+            "ingredients. It is a partial estimate, not the complete footprint."
+        )
+    if not verified:
+        st.warning(
+            "These numbers come from automatic matching, which is not verified by the team. "
+            "Open a meal to see which Agribalyse food was used for each ingredient."
+        )
+    if show_sources:
+        render_ai_summary(ingredient_results)
+    st.divider()
+
+    # ------------------------------------------------------------ DAILY MEALS
+    for _, meal in plan.iterrows():
+        with st.expander(f"{meal['day']} — {meal['recipe_name']} · {fmt_kg(meal['kg_co2e_serving'])}"):
+            c1, c2, c3 = st.columns(3)
+            c1.write(f"**Dietary category**  \n{str(meal['dietary_tag']).capitalize()}")
+            c2.write(f"**Main protein**  \n{str(meal['main_protein']).capitalize()}")
+            c3.write(f"**Estimated emissions per serving**  \n{fmt_kg(meal['kg_co2e_serving'])}")
+
+            if not meal["complete"]:
+                st.warning(f"Incomplete estimate. No confident match for: {meal['uncertain_ingredients']}")
+            elif verified:
+                st.success("All ingredients matched with team-checked Agribalyse foods.")
+            else:
+                st.info("All ingredients matched automatically (not verified). Check the table below.")
+
+            rows = ingredient_results[ingredient_results["recipe_id"] == meal["recipe_id"]]
+            table = pd.DataFrame({
+                "Ingredient": rows["ingredient_clean"],
+                "Grams (recipe)": rows["quantity_g"],
+                "Agribalyse food used": rows["agribalyse_name"].where(~rows["uncertain"], "— uncertain —"),
+                "kg CO₂e (recipe)": rows["kg_co2e"].round(3),
+            })
+            if show_sources:
+                table["Source"] = rows["source"].values
+            st.dataframe(table, hide_index=True, width="stretch")
+            st.caption(f"Recipe for {int(meal['servings'])} servings; the meal estimate is per serving.")
+
+    st.divider()
+
+    # ------------------------------------------------------------ REPLACE A MEAL
+    st.subheader("🔄 Replace a meal")
+    st.write(
+        "Alternatives respect your diet and do not repeat a main protein. Only recipes with a "
+        "complete estimate are offered, so the comparison is meaningful."
     )
-if not verified:
-    st.warning(
-        "These numbers come from automatic matching, which is not verified by the team. "
-        "Open a meal to see which Agribalyse food was used for each ingredient."
-    )
-st.divider()
 
-# ---------------------------------------------------------------- DAILY MEALS
-for _, meal in plan.iterrows():
-    with st.expander(f"{meal['day']} — {meal['recipe_name']} · {fmt_kg(meal['kg_co2e_serving'])}"):
-        c1, c2, c3 = st.columns(3)
-        c1.write(f"**Dietary category**  \n{str(meal['dietary_tag']).capitalize()}")
-        c2.write(f"**Main protein**  \n{str(meal['main_protein']).capitalize()}")
-        c3.write(f"**Estimated emissions per serving**  \n{fmt_kg(meal['kg_co2e_serving'])}")
+    selected_day = st.selectbox("Which day would you like to change?", options=DAYS)
+    current_meal = plan[plan["day"] == selected_day].iloc[0]
+    options = alternatives(plan, recipes, plan_diet, selected_day)
+    options = options[options["complete"]]
 
-        if not meal["complete"]:
-            st.warning(f"Incomplete estimate. No confident match for: {meal['uncertain_ingredients']}")
-        elif verified:
-            st.success("All ingredients matched with team-verified Agribalyse foods.")
-        else:
-            st.info("All ingredients matched automatically (not verified). Check the table below.")
+    st.write(f"Current meal: **{current_meal['recipe_name']}** ({fmt_kg(current_meal['kg_co2e_serving'])})")
 
-        rows = ingredient_results[ingredient_results["recipe_id"] == meal["recipe_id"]]
-        table = pd.DataFrame({
-            "Ingredient": rows["ingredient_clean"],
-            "Grams (recipe)": rows["quantity_g"],
-            "Agribalyse food used": rows["agribalyse_name"].where(~rows["uncertain"], "— uncertain —"),
-            "kg CO₂e (recipe)": rows["kg_co2e"].round(3),
-        })
-        st.dataframe(table, hide_index=True, width="stretch")
-        st.caption(f"Recipe for {int(meal['servings'])} servings; the meal estimate is per serving.")
+    if options.empty:
+        st.info("No alternative with a complete estimate is available for this day. Try another day.")
+    else:
+        labels = {
+            f"{o['recipe_name']} — {o['kg_co2e_serving']:.2f} kg CO₂e "
+            f"({o['kg_co2e_serving'] - current_meal['kg_co2e_serving']:+.2f})": o["recipe_id"]
+            for _, o in options.iterrows()
+        }
+        choice = st.selectbox("Choose an alternative meal (lowest CO₂e first)", options=list(labels))
+        if st.button("Replace meal", type="primary"):
+            st.session_state["plan"] = swap_meal(plan, recipes, plan_diet, selected_day, labels[choice])
+            st.rerun()
 
-st.divider()
-
-# ---------------------------------------------------------------- REPLACE A MEAL
-st.subheader("🔄 Replace a meal")
-st.write(
-    "Alternatives respect your diet and do not repeat a main protein. Only recipes with a "
-    "complete estimate are offered, so the comparison is meaningful."
-)
-
-selected_day = st.selectbox("Which day would you like to change?", options=DAYS)
-current_meal = plan[plan["day"] == selected_day].iloc[0]
-options = alternatives(plan, recipes, plan_diet, selected_day)
-options = options[options["complete"]]
-
-st.write(f"Current meal: **{current_meal['recipe_name']}** ({fmt_kg(current_meal['kg_co2e_serving'])})")
-
-if options.empty:
-    st.info("No alternative with a complete estimate is available for this day. Try another day.")
-else:
-    labels = {
-        f"{o['recipe_name']} — {o['kg_co2e_serving']:.2f} kg CO₂e "
-        f"({o['kg_co2e_serving'] - current_meal['kg_co2e_serving']:+.2f})": o["recipe_id"]
-        for _, o in options.iterrows()
-    }
-    choice = st.selectbox("Choose an alternative meal (lowest CO₂e first)", options=list(labels))
-    if st.button("Replace meal", type="primary"):
-        st.session_state["plan"] = swap_meal(plan, recipes, plan_diet, selected_day, labels[choice])
+    if st.button("Reset to the original plan"):
+        st.session_state["plan"] = original_plan.copy()
         st.rerun()
 
-if st.button("Reset to the original plan"):
-    st.session_state["plan"] = original_plan.copy()
-    st.rerun()
+    st.divider()
 
-st.divider()
+    # ------------------------------------------------------------ IMPACT OF THE CHANGES
+    st.subheader("Impact of your changes")
+    changed_days = (plan.set_index("day")["recipe_id"] != original_plan.set_index("day")["recipe_id"]).sum()
 
-# ---------------------------------------------------------------- IMPACT OF THE CHANGES
-st.subheader("Impact of your changes")
-changed_days = (plan.set_index("day")["recipe_id"] != original_plan.set_index("day")["recipe_id"]).sum()
+    if changed_days == 0:
+        st.info("You have not replaced any meal yet.")
+    elif not comparable:
+        st.warning("Saving not calculated: a replaced meal has an incomplete estimate.")
+    elif saved > 0:
+        st.success(
+            f"Your {changed_days} change(s) reduce the estimated footprint by **{saved:.2f} kg CO₂e** "
+            f"per week for {people} person(s)."
+        )
+    elif saved < 0:
+        st.info(f"Your {changed_days} change(s) increase the estimated footprint by {abs(saved):.2f} kg CO₂e.")
+    else:
+        st.info("Your changes do not alter the weekly estimate.")
 
-if changed_days == 0:
-    st.info("You have not replaced any meal yet.")
-elif not comparable:
-    st.warning("Saving not calculated: a replaced meal has an incomplete estimate.")
-elif saved > 0:
-    st.success(
-        f"Your {changed_days} change(s) reduce the estimated footprint by **{saved:.2f} kg CO₂e** "
-        f"per week for {people} person(s)."
+    st.caption(
+        "Estimates use Agribalyse 3.2 (kg CO₂e per kg of food) and one meal per day. "
+        "A lower estimate is not proof of a real reduction in emissions."
     )
-elif saved < 0:
-    st.info(f"Your {changed_days} change(s) increase the estimated footprint by {abs(saved):.2f} kg CO₂e.")
-else:
-    st.info("Your changes do not alter the weekly estimate.")
 
-st.caption(
-    "Estimates use Agribalyse 3.2 (kg CO₂e per kg of food) and one meal per day. "
-    "A lower estimate is not proof of a real reduction in emissions."
-)
+
+def render_own_recipe() -> None:
+    st.subheader("Analyse your own recipe")
+    st.write(
+        "Write one ingredient per line with its weight, in English, Spanish or Catalan "
+        "(for example `300 g merluza` or `1 kg patates`). We estimate its carbon footprint and "
+        "compare it with the meals of the planner."
+    )
+    ai = live_ai()
+    if ai is not None:
+        st.caption(f"🤖 Live AI: **on** (local model `{ai.model_name}` via Ollama). New ingredients are matched "
+                   "by the AI; if it is not sure, you choose.")
+    else:
+        st.caption("🤖 Live AI: **off**. Ingredients the team already checked are recognised automatically; "
+                   "for new ones you choose from the closest Agribalyse foods. To turn the AI on, install "
+                   "[Ollama](https://ollama.com) and run `ollama pull qwen2.5:7b`.")
+
+    c1, c2 = st.columns([3, 1])
+    name = c1.text_input("Recipe name", value="My recipe")
+    servings = int(c2.number_input("Servings", min_value=1, max_value=20, value=2, step=1))
+    text = st.text_area("Ingredients", value=EXAMPLE_RECIPE, height=170)
+
+    parsed, errors = parse_recipe(text)
+    if errors:
+        st.warning("These lines were skipped (write a quantity in g or kg first): " + "; ".join(errors))
+    if parsed.empty:
+        st.info("Add at least one ingredient with its weight.")
+        return
+
+    analyser = recipe_analyser(ai is not None)
+    resolved = st.session_state.setdefault("resolved_cache", {})
+    todo = [i for i in parsed["ingredient"].unique() if i not in resolved]
+    if todo:
+        with st.spinner(f"Matching {len(todo)} ingredient(s)..."):
+            for ing in todo:
+                resolved[ing] = analyser.resolve(ing)
+
+    # Human in the loop: the user chooses the food for the ingredients nobody matched
+    choices = {}
+    missing = [i for i in parsed["ingredient"].unique() if resolved[i]["agribalyse_code"] is None]
+    if missing:
+        st.markdown("**Help us with these ingredients** — choose the closest food, or leave it out:")
+        for ing in missing:
+            cands = analyser.candidates(ing)
+            opts = [None] + [c for c, _ in cands]
+            names = dict(cands)
+            choices[ing] = st.selectbox(
+                f"“{ing}”", options=opts, key=f"pick_{ing}",
+                format_func=lambda c: "— leave it out —" if c is None else names[c],
+            )
+        st.caption("Tip: if the list does not fit, write the ingredient in English (e.g. `mushroom`).")
+
+    result = analyser.co2e(parsed, choices, resolved)
+    known = result["kg_co2e"].notna()
+    total = float(result.loc[known, "kg_co2e"].sum())
+    per_serving = total / servings
+
+    st.divider()
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Total CO₂e" if known.all() else "Known CO₂e", f"{total:.2f} kg")
+    m2.metric("Per serving", f"{per_serving:.2f} kg")
+    recipes, _ = load_data("labels")
+    complete = recipes[recipes["complete"]]
+    median = float(complete["kg_co2e_serving"].median())
+    m3.metric("vs typical planner meal", f"{per_serving - median:+.2f} kg",
+              delta=f"{(per_serving / median - 1) * 100:+.0f}%", delta_color="inverse")
+    if not known.all():
+        st.warning("Some ingredients are left out, so this is a partial estimate: "
+                   + ", ".join(result.loc[~known, "ingredient"]))
+
+    table = pd.DataFrame({
+        "Ingredient": result["ingredient"],
+        "Grams": result["quantity_g"],
+        "Agribalyse food used": result["agribalyse_name"].fillna("— left out —"),
+        "How it was matched": result["source"].fillna("—"),
+        "kg CO₂e": result["kg_co2e"].round(3),
+    })
+    st.dataframe(table, hide_index=True, width="stretch")
+
+    if known.any() and total > 0:
+        top = result.loc[known].sort_values("kg_co2e", ascending=False).iloc[0]
+        share = top["kg_co2e"] / total * 100
+        st.markdown(f"**Biggest contributor:** {top['ingredient']} ({share:.0f}% of the footprint of {name}).")
+        st.bar_chart(result.loc[known].set_index("ingredient")["kg_co2e"], horizontal=True,
+                     x_label="kg CO₂e", y_label="")
+        lowest = complete.sort_values("kg_co2e_serving").iloc[0]
+        st.caption(f"For reference: the lowest-carbon meal in the planner is **{lowest['recipe_name']}** "
+                   f"({lowest['kg_co2e_serving']:.2f} kg CO₂e per serving); the typical one is {median:.2f} kg.")
+
+
+with tab_plan:
+    render_plan()
+with tab_recipe:
+    render_own_recipe()

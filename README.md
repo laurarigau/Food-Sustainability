@@ -61,6 +61,17 @@ python src/evaluate_matching.py --matcher ai --candidates strict --objective saf
 
 The AI option only appears in the app when these packages are installed.
 
+### What the app does
+
+- **📅 Weekly plan** — 7 meals for your diet, kg CO₂e per meal and per week, replace meals and see the saving.
+  Default matching **"AI + team check"**: an LLM (Qwen 2.5 14B + verify, answers precomputed in notebook 09,
+  `data/ingredient_matches_llm.csv`) proposes the Agribalyse food for every ingredient and the team label
+  confirms or corrects it. The panel *"What did the AI do?"* shows where the AI was right.
+- **🔍 Analyse your recipe** — write your own recipe in English, Spanish or Catalan (`300 g merluza`).
+  Ingredients the team already checked are recognised automatically; new ones are matched by a local AI model
+  if [Ollama](https://ollama.com) is running (`ollama pull qwen2.5:7b`), otherwise you choose from the closest
+  Agribalyse foods. You get kg CO₂e per serving, the comparison with the planner meals and the biggest contributor.
+
 Optional, LLM matcher (free open model; needs a GPU, so run it in Google Colab):
 open `notebooks/07_llm_matching_colab.ipynb` in Colab (Runtime → GPU) and run all cells. Or:
 
