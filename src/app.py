@@ -93,18 +93,36 @@ goal = st.sidebar.selectbox(
 
 people = int(st.sidebar.number_input("Number of people", min_value=1, max_value=10, value=1, step=1))
 
+
+# Use AI + team check by default when available
 matcher_options = (["ai_checked"] if ai_checked_available() else []) + ["labels", "rapidfuzz"] \
     + (["ai"] if ai_available() else [])
-matcher_name = st.sidebar.selectbox(
-    "Ingredient matching method", options=matcher_options, format_func=MATCHER_LABELS.get
-)
-if "ai_checked" not in matcher_options:
-    st.sidebar.caption("AI + team check is hidden: run notebook 09 to create data/ingredient_matches_llm.csv.")
-if matcher_name not in VERIFIED:
-    st.sidebar.warning(
-        "Automatic matching makes mistakes (see the evaluation in the dev logs). "
-        "Use it to compare methods, not to trust the CO₂e numbers."
+
+default_matcher = "ai_checked" if "ai_checked" in matcher_options else "labels"
+
+matcher_name = default_matcher
+
+# Optional settings for comparing matching methods
+with st.sidebar.expander("Advanced settings"):
+    matcher_name = st.selectbox(
+        "Ingredient matching method",
+        options=matcher_options,
+        index=matcher_options.index(default_matcher),
+        format_func=MATCHER_LABELS.get,
     )
+
+    if "ai_checked" not in matcher_options:
+        st.caption(
+            "AI + team check is unavailable: run notebook 09 "
+            "to create data/ingredient_matches_llm.csv."
+        )
+
+    if matcher_name not in VERIFIED:
+        st.warning(
+            "Automatic matching makes mistakes (see the evaluation in the dev logs). "
+            "Use it to compare methods, not to trust the CO₂e numbers."
+        )
+
 
 generate = st.sidebar.button("Generate my weekly plan", type="primary", width="stretch")
 
@@ -220,7 +238,7 @@ def render_plan() -> None:
             })
             if show_sources:
                 table["Source"] = rows["source"].values
-            st.dataframe(table, hide_index=True, width="stretch")
+            st.dataframe(table, hide_index=True, width="stretch", column_config={"Source": None})
             st.caption(f"Recipe for {int(meal['servings'])} servings; the meal estimate is per serving.")
 
     st.divider()
@@ -367,7 +385,7 @@ def render_own_recipe() -> None:
         "How it was matched": result["source"].fillna("—"),
         "kg CO₂e": result["kg_co2e"].round(3),
     })
-    st.dataframe(table, hide_index=True, width="stretch")
+    st.dataframe(table, hide_index=True, width="stretch", column_config={"How it was matched": None})
 
     if known.any() and total > 0:
         top = result.loc[known].sort_values("kg_co2e", ascending=False).iloc[0]
