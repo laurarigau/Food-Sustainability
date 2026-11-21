@@ -238,7 +238,7 @@ def render_plan() -> None:
             })
             if show_sources:
                 table["Source"] = rows["source"].values
-            st.dataframe(table, hide_index=True, width="stretch")
+            st.dataframe(table, hide_index=True, width="stretch", column_config={"Source": None})
             st.caption(f"Recipe for {int(meal['servings'])} servings; the meal estimate is per serving.")
 
     st.divider()
@@ -385,7 +385,7 @@ def render_own_recipe() -> None:
         "How it was matched": result["source"].fillna("—"),
         "kg CO₂e": result["kg_co2e"].round(3),
     })
-    st.dataframe(table, hide_index=True, width="stretch")
+    st.dataframe(table, hide_index=True, width="stretch", column_config={"How it was matched": None})
 
     if known.any() and total > 0:
         top = result.loc[known].sort_values("kg_co2e", ascending=False).iloc[0]
